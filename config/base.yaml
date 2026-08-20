@@ -1,0 +1,160 @@
+model:
+  name: hfsg_balanced_synthetic_hospital_flow_model
+  version: "1.0"
+  document_status: "FROZEN_v1.0"
+
+  time_unit: "hour"
+  time_step_hours: 1
+  simulation_hours: 720
+
+  primary_data_label: "simulated_patient_event_data"
+
+  initial_conditions:
+    ed_census: 20
+    specialty_census: 25
+    general_census: 60
+    icu_census: 10
+    cumulative_discharges: 0
+    cumulative_deaths: 0
+
+  initial_patient_population:
+    enabled: true
+    entry_type: "INITIAL"
+
+  capacities:
+    ed: 40
+    specialty: 60
+    general: 100
+    icu: 20
+
+  arrivals:
+    distribution: "poisson"
+    baseline_rate_per_hour: 1.5
+
+    seasonality:
+      enabled: true
+      amplitude: 0.30
+      period_hours: 24
+      phase_shift_hours: 8
+
+  ed_processing:
+    mean_processing_hours: 4
+    a: 0.25
+    b1: 0.02
+
+  destination_shares:
+    specialty: 0.30
+    general: 0.45
+    icu: 0.05
+    home: 0.20
+
+  transfer_rates:
+    specialty_to_general: 0.015
+    specialty_to_icu: 0.005
+    general_to_icu: 0.002
+
+  discharge_rates:
+    specialty: 0.008
+    general: 0.010
+    icu: 0.006
+
+  mortality_rates:
+    specialty: 0.0002
+    general: 0.0001
+    icu: 0.0008
+
+  icu_pressure:
+    enabled: false
+    zeta: 0.0
+    epsilon: 0.05
+
+  capacity:
+    timing: "beginning_of_step"
+    intra_timestep_bed_reuse: false
+
+  integerization:
+    method: "largest_remainder"
+    tie_break: "seeded_deterministic"
+    preserve_source_stock: true
+    preserve_destination_capacity: true
+
+  patient_selection:
+    ed_non_icu: "FIFO"
+
+    icu_transfer:
+      priority:
+        - "highest_severity"
+        - "longest_waiting_time"
+        - "seeded_random_tie_break"
+
+    discharge:
+      method: "longest_stay_first"
+      minimum_stay:
+        enabled: false
+
+    death:
+      method: "weighted"
+      weights:
+        severity: 0.50
+        icu_status: 0.30
+        elapsed_stay: 0.20
+
+  patient_attributes:
+    provenance: "ASSUMPTION"
+
+  batch:
+    target_patient_records: 1000000
+    required_standard_scenarios:
+      - "S1"
+      - "S2"
+      - "S3"
+      - "S4"
+      - "S5"
+      - "S6"
+      - "S7"
+      - "S8"
+
+    planned_runs_per_scenario: 120
+
+    patient_chunk_rows: 50000
+    event_chunk_rows: 100000
+
+    storage_format: "parquet"
+    compression: "zstd"
+    partition_by: "scenario_id"
+
+  reproducibility:
+    seed_policy: "master_seed_to_child_seed"
+    master_seed: 20260805
+
+  validation:
+    enforce_nonnegative_stocks: true
+    enforce_capacity_limits: true
+    enforce_mass_balance: true
+    mass_balance_tolerance: 1.0e-6
+
+    checks:
+      - "no_negative_stocks"
+      - "source_stock_limits"
+      - "capacity_limits"
+      - "destination_shares_sum_to_one"
+      - "no_nan_inf"
+      - "mass_balance"
+      - "integer_flow_allocation"
+      - "unique_patient_ids"
+      - "unique_event_ids"
+      - "chronological_events"
+      - "no_post_terminal_events"
+      - "one_active_location_per_patient"
+      - "aggregate_patient_reconciliation"
+      - "seed_reproducibility"
+      - "standard_8_scenario_coverage"
+
+  output:
+    patient_file: "patients.parquet"
+    event_file: "patient_events.parquet"
+    aggregate_file: "aggregate_timeseries.parquet"
+    summary_file: "simulation_summary.parquet"
+    manifest_file: "dataset_manifest.json"
+    validation_report_file: "validation_report.json"
+    used_configuration_file: "used_configuration.yaml"
