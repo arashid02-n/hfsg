@@ -1,0 +1,38 @@
+{
+  "project": "HFSG",
+  "release": "MVP 1.0",
+  "status": "FROZEN v1.0",
+  "frozen_date": "2026-08-18",
+  "approved_cross_document_decisions": [
+    "Integerization = Largest Remainder Method + seeded deterministic tie-break",
+    "Initial Patient Population is mandatory",
+    "Aggregate Engine determines HOW MANY; Patient Event Generator determines WHICH",
+    "Arrival at timestep t becomes movement-eligible at t+1",
+    "Capacity uses beginning-of-step occupancy; released capacity becomes available at t+1",
+    "Batch uses master_seed -> deterministic child seed per scenario/run",
+    "Batch completion requires >=1,000,000 patient records AND complete Standard-8 coverage"
+  ],
+  "step_3_status": "AUTHORIZED after repository root documents and approved YAML are synchronized",
+  "files": {
+    "PRODUCT.md": {
+      "sha256": "901bc2a58570c11c997dd9a33cbbb4a92a4530a1b37c0f3a71cdcf9f1e79424c",
+      "bytes": 10168
+    },
+    "MODEL.md": {
+      "sha256": "66cdbef18c45679ddebc6f89db80af901c426e211c7a426861c8a8ef1edae788",
+      "bytes": 16428
+    },
+    "ARCHITECTURE.md": {
+      "sha256": "8e878e6757d288dcc6cd921e01299bf8d0685c5e80f1c896c93bbd372feb8f7e",
+      "bytes": 9763
+    },
+    "OPERATIONS.md": {
+      "sha256": "a9e909be256bade30400dd872d568a08176aa5e9ad42fa6a669dba514d74b501",
+      "bytes": 10836
+    },
+    "AGENTS.md": {
+      "sha256": "5ad779941ee2b1f4306d90c5f2657641b843223978775566e89da9737e8de7d2",
+      "bytes": 10302
+    }
+  }
+}
