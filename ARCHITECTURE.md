@@ -1,735 +1,420 @@
-ARCHITECTURE.md
+# HFSG — Software Architecture Specification
 
-HFSG — Software Architecture Specification
-
-Project: Hospital Flow Scenario Generator
-Architecture Version: 1.0
-Implementation Target: Phase 1 — MVP
-
+**Project:** Hospital Flow Scenario Generator  
+**Architecture Version:** 1.0  
+**Document Status:** FROZEN v1.0  
+**Frozen Date:** 2026-08-18  
+**Implementation Target:** Phase 1 — MVP
 
 ---
 
-1. Architecture Purpose
+## 1. Architecture Purpose
 
 This document defines the software architecture required to implement the approved HFSG Phase 1 MVP.
 
 The architecture MUST:
 
-implement the approved Model B from MODEL.md;
+- implement approved Model B from `MODEL.md`;
+- respect product scope defined in `PRODUCT.md`;
+- separate model logic from configuration;
+- separate aggregate simulation from patient-level generation;
+- preserve aggregate-to-patient reconciliation;
+- support Standard-8 and CUSTOM scenarios;
+- support reproducible simulation;
+- support validation;
+- support chunked dataset generation.
 
-respect the product scope defined in PRODUCT.md;
-
-separate model logic from configuration;
-
-separate aggregate simulation from patient-level generation;
-
-preserve aggregate-to-patient reconciliation;
-
-support Standard-8 and CUSTOM scenarios;
-
-support reproducible simulation;
-
-support validation;
-
-support chunked dataset generation.
-
-
-The architecture MUST remain simple and focused on the Phase 1 requirements.
-
+The architecture MUST remain simple and focused on Phase 1.
 
 ---
 
-2. Core Architecture
+## 2. Core Architecture
 
-The HFSG Core Engine follows this logical pipeline:
-
+```text
 Approved Configuration
         ↓
 Configuration Loader
         ↓
-Scenario Configuration
+Scenario Manager
+        ↓
+Simulation Context
+        ↓
+Initial Aggregate State + Initial Patient Population
         ↓
 Aggregate Flow Engine
         ↓
-Patient Generator
+Raw Constrained Aggregate Flows
+        ↓
+Integer Flow Allocator
+        ↓
+Integer Patient Quotas
         ↓
 Patient Event Generator
         ↓
-Reconciliation / Validation
+Updated Patient State
         ↓
-Output Writer
+Aggregate ↔ Patient Reconciliation
         ↓
-Dataset / Simulation Outputs
+Validation
+        ↓
+Output Buffer
+        ↓
+Chunked Output Writer
+        ↓
+Final Validation
+        ↓
+Release Gate
+```
 
-The same Core Engine MUST be used for:
-
-Demo;
-
-Dataset;
-
-Generator;
-
-Standard-8;
-
-CUSTOM.
-
+The same Core Engine MUST be used for Demo, Dataset, Generator, Standard-8, and CUSTOM.
 
 The simulation model MUST NOT be duplicated for different products or scenarios.
 
-
 ---
 
-3. Major Components
+## 3. Major Components
 
-3.1 Configuration Layer
+### 3.1 Configuration Layer
+Loads and validates approved YAML configuration. It contains no simulation logic.
 
-Responsibility:
+### 3.2 Scenario Layer
+Selects S1-S8 or CUSTOM and applies approved parameter overrides. It MUST NOT alter equations or model structure.
 
-Load and validate approved YAML configuration.
+### 3.3 Simulation Context
+Carries stable execution identity:
 
-It provides:
+- `simulation_id`
+- `scenario_id`
+- `model_version`
+- `configuration_version`
+- `master_seed` where applicable
+- `child_seed`
+- `start_datetime`
+- `generation_timestamp`
 
-model parameters;
+### 3.4 Aggregate Flow Engine
+Implements Model B and calculates arrivals, ED processing, transfers, discharges, deaths, capacity constraints, unmet demand, and simultaneous stock updates.
 
-initial conditions;
+### 3.5 Integer Flow Allocator
+Converts constrained continuous flows into integer patient quotas using:
 
-capacities;
+`Largest Remainder Method + seeded deterministic tie-break`
 
-arrival parameters;
+It MUST preserve source-stock limits, destination-capacity limits, and approved total integer outflow.
 
-transfer parameters;
+### 3.6 Patient Generator / Patient State
+Creates:
 
-discharge parameters;
+1. initial patient population matching initial stocks;
+2. one new patient entity for each synthetic arrival.
 
-death parameters;
+### 3.7 Patient Event Generator
+Converts integer quotas into individual ARRIVAL/TRANSFER/DISCHARGE/DEATH events.
 
-patient attribute distributions;
+The Aggregate Engine determines HOW MANY.  
+The Event Generator determines WHICH patients.
 
-scenario definitions;
+### 3.8 Reconciliation Layer
+Verifies:
 
-random seed configuration;
-
-output configuration.
-
-
-The Configuration Layer MUST NOT contain simulation logic.
-
-It MUST reject invalid configurations before simulation begins.
-
-
----
-
-3.2 Scenario Layer
-
-Responsibility:
-
-Select a scenario and apply approved parameter overrides.
-
-Supported scenarios:
-
-S1
-S2
-S3
-S4
-S5
-S6
-S7
-S8
-CUSTOM
-
-Scenario logic MUST operate through configuration.
-
-It MUST NOT:
-
-change the mathematical equations;
-
-create a separate simulation engine;
-
-silently introduce new parameters;
-
-modify core model structure.
-
-
-
----
-
-3.3 Aggregate Flow Engine
-
-Responsibility:
-
-Implement Model B aggregate hospital-flow simulation defined in MODEL.md.
-
-It manages:
-
-ED;
-
-Specialty Ward;
-
-General Medical Ward;
-
-ICU;
-
-cumulative discharges;
-
-cumulative deaths.
-
-
-It calculates:
-
-arrivals;
-
-ED processing;
-
-transfers;
-
-discharges;
-
-deaths;
-
-capacity constraints;
-
-unmet demand;
-
-stock updates.
-
-
-The engine MUST use the simultaneous update rule defined in MODEL.md.
-
-The Aggregate Flow Engine MUST NOT directly implement product-specific interfaces.
-
-
----
-
-3.4 Patient Generator
-
-Responsibility:
-
-Create one synthetic patient entity for each synthetic arrival.
-
-Each patient must contain the approved minimum fields defined in MODEL.md.
-
-The Patient Generator is an HFSG engineering extension.
-
-It MUST NOT be represented as part of the original scientific paper.
-
-Patient attributes MUST be generated from approved configurable distributions.
-
-
----
-
-3.5 Patient Event Generator
-
-Responsibility:
-
-Convert aggregate flow quotas into individual patient events.
-
-Supported event types:
-
-ARRIVAL
-TRANSFER
-DISCHARGE
-DEATH
-
-The Event Generator MUST follow the patient selection rules in MODEL.md.
-
-It MUST preserve:
-
-patient identity;
-
-chronological ordering;
-
-valid patient location;
-
-terminal-state rules;
-
-aggregate reconciliation.
-
-
-
----
-
-3.6 Reconciliation Layer
-
-Responsibility:
-
-Verify consistency between aggregate simulation and patient-level data.
-
-It MUST verify:
-
+```text
 Patient stock = Aggregate stock
-
-and:
-
-Patient events = Aggregate flows
-
-for every required simulation hour and flow.
+Patient events = Integer patient quotas
+```
 
 A critical reconciliation failure MUST stop production Batch generation.
 
+### 3.9 Validation Layer
+Implements all validation requirements from `MODEL.md`.
+
+### 3.10 Output Layer
+Buffers and writes:
+
+- `patients.parquet`
+- `patient_events.parquet`
+- `aggregate_timeseries.parquet`
+- `simulation_summary.parquet`
+- `scenario_comparison.csv`
+- `dataset_manifest.json`
+- `validation_report.json`
+- `used_configuration.yaml`
+
+The full dataset MUST NOT be held in memory.
 
 ---
 
-3.7 Validation Layer
+## 4. Data Flow
 
-Responsibility:
-
-Validate simulation and generated data.
-
-It MUST implement the validation requirements from MODEL.md, including:
-
-non-negative stocks;
-
-flow/source constraints;
-
-capacity constraints;
-
-destination-share invariant;
-NaN/Inf checks;
-
-mass balance;
-
-unique patient IDs;
-
-unique event IDs;
-
-chronological events;
-
-no post-terminal events;
-
-one active location per patient;
-
-aggregate/patient reconciliation;
-
-reproducibility;
-
-scenario coverage.
-
-
-Validation MUST NOT be treated as an optional reporting feature.
-
-
----
-
-3.8 Output Layer
-
-Responsibility:
-
-Write approved simulation and dataset outputs.
-
-Required outputs include:
-
-patients.parquet
-patient_events.parquet
-aggregate_timeseries.parquet
-simulation_summary.parquet
-scenario_comparison.csv
-dataset_manifest.json
-validation_report.json
-used_configuration.yaml
-
-The Output Layer MUST support chunked writing for large datasets.
-
-The full Dataset MUST NOT be held in memory.
-
-
----
-
-4. Data Flow
-
-The approved data flow is:
-
+```text
 YAML Configuration
         ↓
 Configuration Loader
         ↓
-Scenario Selection
+Scenario Selection / Overrides
         ↓
-Validated Parameters
+Simulation Context / Controlled RNG
+        ↓
+Initial Aggregate State
+        +
+Initial Patient Population
         ↓
 Aggregate Flow Engine
         ↓
-Aggregate Stocks / Flows
+Raw Constrained Flows
         ↓
-Patient Generator
+Integer Flow Allocator
         ↓
-Patient Entities
+Integer Patient Quotas
         ↓
 Patient Event Generator
         ↓
-Patient Events
+Updated Patient State
         ↓
 Reconciliation
         ↓
-Validation
+Runtime Validation
         ↓
-Output Writer
+Output Buffer
         ↓
-Parquet / JSON / CSV
-
-Configuration flows downward into the system.
-
-Validation and reconciliation operate across the generated outputs.
-
+Chunked Writer
+        ↓
+Run/Dataset Validation
+        ↓
+Release Gate
+```
 
 ---
 
-5. Separation of Responsibilities
+## 5. Separation of Responsibilities
 
-The implementation MUST preserve the following boundaries:
+| Component | Primary Responsibility |
+|---|---|
+| Configuration | Parameters and configuration validation |
+| Scenario | Approved parameter overrides |
+| Simulation Context | Run identity and controlled randomness |
+| Aggregate Engine | Model B hospital-flow simulation |
+| Integer Allocator | Fractional flow → integer patient quota |
+| Patient Generator | Initial and arrival patient creation |
+| Event Generator | Which patients move |
+| Reconciliation | Aggregate ↔ patient consistency |
+| Validation | Correctness and invariant checks |
+| Output | Dataset and metadata writing |
+| Release Gate | Prevent invalid commercial release |
 
-Component Primary Responsibility
-
-Configuration Parameters and configuration validation
-Scenario Scenario selection and approved parameter overrides
-Aggregate Engine Model B hospital-flow simulation
-Patient Generator Synthetic patient creation
-Event Generator Individual patient events
-Reconciliation Aggregate ↔ patient consistency
-Validation Correctness and invariant checks
-Output Dataset and metadata writing
-
-
-A component SHOULD NOT silently take over the responsibility of another component.
-
+A component SHOULD NOT silently take over another component's responsibility.
 
 ---
 
-6. Configuration-Driven Design
+## 6. Configuration-Driven Design
 
 Configurable values MUST remain outside the mathematical engine whenever practical.
 
-Examples include:
-
-capacities;
-
-arrival rates;
-
-seasonal parameters;
-
-destination shares;
-
-transfer rates;
-
-discharge rates;
-
-death rates;
-
-initial conditions;
-
-patient distributions;
-
-scenario modifications;
-
-random seeds;
-
-output settings.
-
-
-The engine reads these values from approved configuration.
-
 Scenario changes MUST be expressed as configuration changes rather than duplicated code paths.
 
+---
+
+## 7. Simulation Execution
+
+### Initialization
+
+1. Load configuration.
+2. Validate configuration.
+3. Select scenario.
+4. Apply approved overrides.
+5. Revalidate configuration.
+6. Create Simulation Context.
+7. Initialize controlled RNG.
+8. Initialize aggregate stocks.
+9. Generate initial patient population.
+10. Reconcile initial state.
+
+### Every Timestep
+
+11. Read beginning-of-step aggregate state.
+12. Read beginning-of-step patient state.
+13. Generate arrivals and arrival patient entities.
+14. Calculate requested aggregate flows.
+15. Apply source constraints.
+16. Apply beginning-of-step capacity constraints.
+17. Calculate discharge/death flows.
+18. Integerize movement quotas.
+19. Select WHICH patients move.
+20. Generate events.
+21. Update aggregate stocks simultaneously.
+22. Update patient states.
+23. Reconcile aggregate ↔ patient state.
+24. Run runtime validation.
+25. Buffer outputs.
+
+### Completion
+
+26. Flush buffers.
+27. Generate summary.
+28. Run run-level validation.
+29. Write validation report and metadata.
 
 ---
 
-7. Simulation Execution
+## 8. Capacity Timing
 
-A simulation run follows this logical sequence:
+Phase 1 uses beginning-of-step occupancy for destination-capacity allocation.
 
-1. Load configuration
-2. Validate configuration
-3. Select scenario
-4. Apply approved scenario overrides
-5. Initialize random seed
-6. Initialize aggregate stocks
-7. Initialize patient state
-8. Run simulation step
-9. Generate aggregate flows
-10. Generate patient events
-11. Reconcile patient state with aggregate state
-12. Run validation
-13. Write outputs
-14. Generate simulation summary
-15. Generate validation report
+Capacity released during timestep `t` becomes available beginning at timestep `t+1`.
 
-All simulation steps MUST follow the rules in MODEL.md.
-
+Intra-timestep bed reuse MUST NOT be implemented in Phase 1.
 
 ---
 
-8. Scenario Architecture
+## 9. Timestep Eligibility
 
-All scenarios use the same engine:
-
-┌── S1
-                 ├── S2
-                 ├── S3
-                 ├── S4
-                 ├── S5
-Configuration ───┼── S6 ──→ Same Core Engine
-                 ├── S7
-                 ├── S8
-                 └── CUSTOM
-
-The scenario system MUST NOT branch into separate mathematical implementations.
-
-A scenario modifies approved parameters only.
-
+Patients arriving during timestep `t` are not eligible for transfer, discharge, or death until timestep `t+1`.
 
 ---
 
-9. Reproducibility Architecture
+## 10. Scenario Architecture
 
-Each simulation must have an identifiable execution context containing:
+All scenarios use the same Core Engine.
 
-model version;
-
-configuration version;
-
-scenario ID;
-
-simulation ID;
-
-random seed;
-
-generation timestamp.
-
-
-The random-number generation system MUST be controlled by the simulation seed.
-
-A fixed configuration and seed must reproduce the defined test fixture.
-
+Scenario logic MUST NOT branch into separate mathematical implementations.
 
 ---
 
-10. Batch Architecture
+## 11. Reproducibility Architecture
 
-Large Dataset generation MUST use incremental processing.
+Every Batch has one `master_seed`.
 
-Logical flow:
+Each run derives a deterministic child seed from:
 
-Scenario
-    ↓
-Simulation Run
-    ↓
-Generate Patient Chunk
-    ↓
-Generate Event Chunk
-    ↓
-Validate Chunk / State
-    ↓
-Write Parquet
-    ↓
-Release Memory
-    ↓
-Next Chunk / Run
+- master seed;
+- scenario ID;
+- run index.
 
-The entire Dataset MUST NOT be accumulated in RAM.
-Approved planning values include:
-
-patient chunk: 50,000;
-
-event chunk: 100,000;
-
-compression: ZSTD;
-
-partition key: scenario_id.
-
-
+Uncontrolled randomness is prohibited.
 
 ---
 
-11. Output Architecture
+## 12. Batch Architecture
 
-The output structure must preserve separation between:
+Simulation proceeds timestep-by-timestep.
 
-Patient Data
+Storage buffering proceeds chunk-by-chunk.
 
-patients.parquet
+Chunk sizes are output/memory-management settings and MUST NOT change simulation semantics.
 
-Event Data
+Approved planning values:
 
-patient_events.parquet
+- patient write buffer: 50,000 rows;
+- event write buffer: 100,000 rows;
+- compression: ZSTD;
+- partition key: `scenario_id`.
 
-Aggregate Data
-
-aggregate_timeseries.parquet
-
-Run-Level Data
-
-simulation_summary.parquet
-
-Metadata and Validation
-
-dataset_manifest.json
-validation_report.json
-used_configuration.yaml
-
-Scenario comparison output:
-
-scenario_comparison.csv
-
+The entire dataset MUST NOT be accumulated in RAM.
 
 ---
 
-12. Error and Failure Handling
+## 13. Validation Architecture
 
-The system MUST distinguish between normal execution errors and specification-level problems.
+### Runtime Validation
+At minimum:
 
-Configuration Error
+- negative stocks;
+- source-stock limits;
+- capacity limits;
+- NaN/Inf;
+- mass balance;
+- integer allocation validity;
+- aggregate/patient reconciliation.
 
-Invalid configuration MUST prevent simulation from starting.
+### Run/Dataset Validation
+At minimum:
 
-Validation Failure
+- patient ID uniqueness;
+- event ID uniqueness;
+- temporal integrity;
+- no post-terminal events;
+- one active location;
+- scenario coverage;
+- Parquet readability;
+- record counts;
+- Manifest completeness;
+- reproducibility fixture.
 
-A failed invariant MUST be reported by the Validation Layer.
-
-Critical Failure
-
-Mass-balance failure or aggregate/patient reconciliation failure MUST be treated as critical for production Batch generation.
-
-Specification Conflict
-
-If project documents conflict:
-
-SPEC_CONFLICT
-
-must be reported.
-
-Missing Decision
-
-If an implementation decision is required but not approved:
-
-DECISION_REQUIRED
-
-must be reported.
-
-The system MUST NOT silently invent a resolution.
-
+Tests MUST NOT bypass validation.
 
 ---
 
-13. Testing Architecture
+## 14. Error and Failure Handling
 
-Testing SHOULD be organized around component responsibilities.
+Recognized states:
 
-At minimum, tests must cover:
+- configuration error;
+- validation failure;
+- critical failure;
+- `SPEC_CONFLICT`;
+- `DECISION_REQUIRED`.
 
-configuration validation;
-
-scenario configuration;
-
-aggregate equations;
-
-capacity constraints;
-
-simultaneous updates;
-
-mass balance;
-
-patient uniqueness;
-
-event uniqueness;
-
-patient state invariants;
-
-aggregate-to-patient reconciliation;
-
-random-seed reproducibility;
-
-scenario execution;
-
-output readability.
-
-
-Tests MUST NOT bypass validation rules.
-
+A reconciliation or mass-balance failure is critical for production Batch.
 
 ---
 
-14. Architecture Boundaries
+## 15. Release Gate
 
-Phase 1 architecture MUST NOT require:
+Commercial packaging MUST NOT occur unless:
 
-cloud infrastructure;
+`validation_status = PASS`
 
-microservices;
+Technical validation produces status:
 
-external databases;
+`VALIDATED`
 
-public APIs;
+Commercial release additionally requires project-owner approval and becomes:
 
-authentication;
+`RELEASED`
 
-payment infrastructure;
+A failed critical dataset becomes:
 
-HIS/EHR/FHIR integration;
-
-machine learning infrastructure;
-
-LLM infrastructure;
-
-digital twin infrastructure.
-
-
-These are outside the approved Phase 1 architecture.
-
+`REJECTED`
 
 ---
 
-15. Implementation Principle
+## 16. Architecture Boundaries
 
-The architecture should remain as simple as possible while satisfying the approved Phase 1 requirements.
+Phase 1 MUST NOT require:
 
-The implementation MUST prioritize:
-
-1. correctness;
-
-
-2. reproducibility;
-
-
-3. validation;
-
-
-4. configuration-driven behaviour;
-
-
-5. aggregate/patient consistency;
-
-
-6. maintainability;
-
-
-7. scalable Batch output.
-
-
-
-Do not introduce architectural complexity without an approved requirement.
-
+- cloud infrastructure;
+- microservices;
+- external databases;
+- public APIs;
+- authentication;
+- payment infrastructure;
+- HIS/EHR/FHIR integration;
+- ML infrastructure;
+- LLM infrastructure;
+- digital twin infrastructure.
 
 ---
 
-16. Architecture Completion Criteria
+## 17. Implementation Principle
 
-The Phase 1 architecture is considered implemented when:
+When multiple implementations satisfy the approved specification, prefer the simplest implementation that preserves correctness, reproducibility, validation, configuration-driven behaviour, aggregate/patient consistency, maintainability, and Batch output.
 
-the approved configuration can reach the simulation engine;
+Do not optimize for hypothetical future requirements.
 
-the same Core Engine can execute Standard-8 and CUSTOM;
+---
 
-Model B is implemented without duplicated scenario engines;
+## 18. Architecture Completion Criteria
 
-patient generation follows aggregate arrivals;
+The architecture is implemented when:
 
-patient events follow aggregate flows;
-
-reconciliation is enforced;
-
-validation is integrated into execution;
-
-outputs are generated in the approved formats;
-
-Batch generation can operate without holding the complete Dataset in memory;
-
-reproducibility requirements are preserved.
+- approved configuration reaches the engine;
+- same Core Engine executes Standard-8 and CUSTOM;
+- Model B is implemented without duplicated scenario engines;
+- initial patient population matches initial stocks;
+- raw flows are converted to approved integer quotas;
+- patient events follow integer quotas;
+- reconciliation is enforced;
+- validation is integrated;
+- required outputs are generated;
+- Batch runs without holding the complete dataset in memory;
+- reproducibility requirements are preserved;
+- release gate blocks invalid commercial packaging.
