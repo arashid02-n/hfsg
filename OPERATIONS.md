@@ -1,44 +1,40 @@
-OPERATIONS.md
+# HFSG — Operations Specification
 
-HFSG — Operations Specification
-
-Project: Hospital Flow Scenario Generator
-Operations Version: 1.0
-Implementation Target: Phase 1 — MVP
-
+**Project:** Hospital Flow Scenario Generator  
+**Operations Version:** 1.0  
+**Document Status:** FROZEN v1.0  
+**Frozen Date:** 2026-08-18  
+**Implementation Target:** Phase 1 — MVP
 
 ---
 
-1. Purpose
+## 1. Purpose
 
 This document defines how HFSG is configured, executed, validated, tested, and used during Phase 1.
 
-It describes the operational workflow around the HFSG Core Engine.
-
 It does NOT define the mathematical model.
 
-Model behaviour is defined in MODEL.md.
-
-Product scope is defined in PRODUCT.md.
-
-Software structure is defined in ARCHITECTURE.md.
-
-Agent behaviour is defined in AGENTS.md.
-
+- Model behaviour: `MODEL.md`
+- Product scope: `PRODUCT.md`
+- Software structure: `ARCHITECTURE.md`
+- Agent behaviour: `AGENTS.md`
 
 ---
 
-2. Operating Principle
+## 2. Operating Principle
 
-HFSG must be operated through a controlled workflow:
-
+```text
 Configuration
     ↓
 Configuration Validation
     ↓
 Scenario Selection
     ↓
-Simulation
+Simulation Initialization
+    ↓
+Aggregate Simulation
+    ↓
+Integer Patient Quotas
     ↓
 Patient/Event Generation
     ↓
@@ -49,715 +45,469 @@ Validation
 Output Generation
     ↓
 Result Inspection
+    ↓
+Release Gate
+```
 
-A simulation that completes without errors is not automatically considered valid.
+Program completion does not imply data validity.
 
-Validation MUST pass before a production Dataset is released.
-
-
----
-
-3. Required Environment
-
-Phase 1 requires an environment capable of running the HFSG software and its dependencies.
-
-The project MUST maintain:
-
-source code;
-
-configuration files;
-
-test suite;
-
-simulation engine;
-
-validation tools;
-
-output writers.
-
-
-The exact operating-system, Python-version, package versions, and installation commands MUST be defined by the actual implementation environment rather than invented by the agent.
-
+Validation MUST pass before a production Dataset can become technically releasable.
 
 ---
 
-4. Repository Structure
+## 3. Required Environment
 
-The repository SHOULD maintain a clear separation between source code, configuration, tests, documentation, and generated outputs.
+The exact OS, Python version, dependency versions, and installation commands MUST be defined by the actual implementation environment and recorded by the engineer.
 
-A recommended structure is:
-
-HFSG/
-├── PRODUCT.md
-├── MODEL.md
-├── ARCHITECTURE.md
-├── OPERATIONS.md
-├── AGENTS.md
-│
-├── config/
-│   ├── base.yaml
-│   └── scenarios/
-│
-├── src/
-│   └── hfsg/
-│
-├── tests/
-│
-├── scripts/
-│
-├── data/
-│   ├── input/
-│   └── output/
-│
-└── reports/
-
-The implementation may use a different directory structure only when it remains consistent with ARCHITECTURE.md.
-
-Generated large datasets SHOULD NOT be committed to Git unless explicitly required.
-
+They MUST NOT be invented by the agent before the environment exists.
 
 ---
 
-5. Configuration Workflow
+## 4. Repository Structure
+
+The repository SHOULD maintain separation between source code, configuration, tests, documentation, and generated outputs.
+
+Large generated datasets SHOULD NOT be committed to Git unless explicitly required.
+
+---
+
+## 5. Configuration Workflow
 
 Before running a simulation:
 
-1. load the approved YAML configuration;
-
-
-2. validate the configuration;
-
-
-3. select the scenario;
-
-
+1. load approved YAML;
+2. validate base configuration;
+3. select scenario;
 4. apply approved scenario overrides;
+5. validate resulting configuration;
+6. initialize simulation.
 
-
-5. validate the resulting configuration;
-
-
-6. initialize the simulation.
-
-
-
-The engine MUST refuse invalid configuration.
-
-Examples of configuration errors include:
-
-invalid destination shares;
-
-negative capacity;
-
-invalid initial stock;
-
-invalid rate;
-
-missing required parameter;
-
-invalid scenario definition;
-
-invalid random seed configuration.
-
-
+Invalid configuration MUST prevent simulation start.
 
 ---
 
-6. Scenario Execution
+## 6. Scenario Execution
 
-The approved Standard-8 scenarios are:
+Approved Standard-8:
 
-S1 — Normal Operation
-S2 — Busy Week
-S3 — Crisis Mode
-S4 — ICU Capacity Loss
-S5 — Bed Block
-S6 — Compound Stress
-S7 — Emergency Wave
-S8 — Recovery Strategy
+- S1 — Normal Operation
+- S2 — Busy Week
+- S3 — Crisis Mode
+- S4 — ICU Capacity Loss
+- S5 — Bed Block
+- S6 — Compound Stress
+- S7 — Emergency Wave
+- S8 — Recovery Strategy
 
-The system must also support:
+Also supported:
 
-CUSTOM — Customer Scenario
+- CUSTOM — Customer Scenario
 
-Each scenario MUST be executed using the same Core Engine.
-
-Scenario parameters MUST be loaded from configuration.
-
-The engine MUST NOT modify its mathematical structure based on the scenario.
-
+Every scenario uses the same Core Engine.
 
 ---
 
-7. Single Simulation Run
+## 7. Single Simulation Run
 
-A standard simulation run should follow:
+### Run Initialization
 
-1. Select configuration
-2. Select scenario
-3. Set simulation ID
-4. Set random seed
-5. Initialize stocks
-6. Initialize patient state
-7. Run simulation for the configured horizon
-8. Generate patient entities
-9. Generate patient events
-10. Reconcile aggregate and patient data
-11. Run validation
-12. Write outputs
-13. Generate summary
-14. Record run metadata
+1. Load configuration.
+2. Validate configuration.
+3. Select scenario.
+4. Apply approved overrides.
+5. Validate resulting configuration.
+6. Create simulation ID.
+7. Initialize controlled RNG.
+8. Initialize aggregate stocks.
+9. Generate initial patient population matching `E(0), C(0), G(0), I(0)`.
+10. Reconcile initial aggregate and patient states.
 
-The default MVP horizon is:
+### For Every Timestep
 
-720 hours
+11. Read beginning-of-step aggregate state.
+12. Read beginning-of-step patient state.
+13. Generate new arrivals.
+14. Create patient entities for those arrivals.
+15. Calculate requested aggregate flows.
+16. Apply source-stock constraints.
+17. Apply beginning-of-step destination-capacity constraints.
+18. Convert constrained aggregate flows to integer patient quotas using `MODEL.md`.
+19. Select WHICH patients satisfy each integer quota.
+20. Generate patient events.
+21. Update aggregate stocks simultaneously.
+22. Update patient states.
+23. Reconcile aggregate and patient states.
+24. Run timestep validation.
+25. Buffer approved outputs.
 
-The default time step is:
+### Run Completion
 
-1 hour
+26. Flush remaining output buffers.
+27. Generate simulation summary.
+28. Run run-level validation.
+29. Write validation report.
+30. Record run metadata.
 
+Default horizon: `720 hours`
 
----
-
-8. Random Seed
-
-Every simulation MUST have an identifiable random seed.
-
-The run metadata must preserve:
-
-simulation ID;
-
-scenario ID;
-
-random seed;
-
-model version;
-
-configuration version;
-
-generation timestamp.
-
-
-For reproducibility testing, the same configuration and seed MUST be reused.
-
-The resulting test fixture must reproduce the expected deterministic/stochastic behaviour.
-
+Default timestep: `1 hour`
 
 ---
 
-9. Baseline Execution
-Before running Standard-8 or a large Batch, the baseline scenario MUST be tested.
+## 8. Integer Patient Quota Operation
 
-Baseline:
+Approved method:
 
-S1 — Normal Operation
+`Largest Remainder Method + seeded deterministic tie-break`
 
-The initial baseline test should be small enough to allow rapid inspection.
+Operational sequence:
 
-The baseline MUST demonstrate that:
+```text
+Raw Constrained Aggregate Flow
+    ↓
+Integer Flow Allocation
+    ↓
+Integer Patient Quota
+    ↓
+Patient Selection
+    ↓
+Patient Events
+```
 
-the simulation starts;
-
-stocks remain valid;
-
-flows remain valid;
-
-mass balance passes;
-
-patient generation works;
-
-event generation works;
-
-aggregate/patient reconciliation passes;
-
-outputs can be read successfully.
-
-
-Large Batch generation SHOULD NOT begin until the baseline is validated.
-
+The Patient Event Generator MUST NOT receive unrestricted fractional patient quotas.
 
 ---
 
-10. Validation Workflow
+## 9. Initial Patient Population Gate
 
-Validation must occur during and after simulation.
+Before the first normal simulation timestep, patient entities MUST exist for all non-zero initial active stocks.
 
-Required checks include:
+Current baseline:
 
-no negative stocks;
+- ED = 20
+- Specialty = 25
+- General Ward = 60
+- ICU = 10
 
-no flow greater than source stock;
-
-no unauthorized capacity violation;
-
-destination shares sum to one;
-
-no NaN/Inf;
-
-mass balance;
-
-unique patient IDs;
-
-unique event IDs;
-
-chronological events;
-
-no post-terminal events;
-
-one active location per patient;
-
-aggregate/patient reconciliation;
-
-seed reproducibility;
-
-scenario coverage.
-
-
-A critical failure MUST be clearly reported.
-
-Do not silently repair invalid data after generation.
-
+Initial aggregate-to-patient reconciliation MUST PASS before the run continues.
 
 ---
 
-11. Standard-8 Validation
+## 10. Timestep Eligibility
 
-All eight standard scenarios MUST be executed and validated:
+Patients generated as arrivals during timestep `t` MUST NOT be eligible for transfer, discharge, or death during timestep `t`.
 
-S1 → PASS
-S2 → PASS
-S3 → PASS
-S4 → PASS
-S5 → PASS
-S6 → PASS
-S7 → PASS
-S8 → PASS
-
-CUSTOM must also be executable using an approved customer configuration.
-
-A Standard-8 result is incomplete if any standard scenario is missing or failed.
-
+They become eligible beginning at timestep `t+1`.
 
 ---
 
-12. Output Generation
+## 11. Capacity Timing
 
-A successful simulation should produce the approved outputs where applicable:
+For Phase 1, destination capacity is evaluated using beginning-of-step occupancy.
 
-patients.parquet
-patient_events.parquet
-aggregate_timeseries.parquet
-simulation_summary.parquet
-scenario_comparison.csv
-dataset_manifest.json
-validation_report.json
-used_configuration.yaml
+Beds released during timestep `t` become available beginning at timestep `t+1`.
 
-The exact files produced by a small development run may be limited according to the execution mode, but production Dataset generation MUST produce the required Dataset package.
-
+Operations MUST NOT assume intra-timestep bed reuse.
 
 ---
 
-13. Output Inspection
+## 12. Random Seed and Reproducibility
 
-After a simulation:
+Every simulation MUST record:
+
+- simulation ID;
+- scenario ID;
+- random seed / child seed;
+- model version;
+- configuration version;
+- generation timestamp.
+
+### Batch Seed Policy
+
+A Batch MUST define one `master_seed`.
+
+Each simulation run MUST derive a deterministic child seed from:
+
+- master seed;
+- scenario ID;
+- run index.
+
+The derived child seed MUST be recorded.
+
+Volatile metadata such as generation timestamp MUST be excluded or normalized in reproducibility comparisons unless a fixed test timestamp is configured.
+
+---
+
+## 13. Baseline Execution — Gate G1
+
+Before Standard-8 validation or Batch generation, S1 MUST pass a small Demo/Development run.
+
+Recommended Demo scale:
+
+`approximately 2,000–10,000 patients`
+
+G1 requires:
+
+- valid stocks;
+- valid flows;
+- valid integer quotas;
+- mass balance PASS;
+- patient generation PASS;
+- event generation PASS;
+- reconciliation PASS;
+- readable outputs.
+
+Failure blocks progression.
+
+---
+
+## 14. Validation Workflow
+
+Validation occurs during and after simulation.
+
+Critical failures MUST remain visible.
+
+Do not silently repair invalid generated data.
+
+---
+
+## 15. Standard-8 Validation
+
+All Standard-8 scenarios MUST execute and validate:
+
+```text
+S1 PASS
+S2 PASS
+S3 PASS
+S4 PASS
+S5 PASS
+S6 PASS
+S7 PASS
+S8 PASS
+```
+
+CUSTOM must also be executable with approved configuration.
+
+---
+
+## 16. Dry Run — Gate G2
+
+Before the production one-million-patient Batch, the system MUST successfully complete an approximately:
+
+`100,000 patient`
+
+dry run.
+
+G2 must confirm:
+
+- chunked writing;
+- memory behaviour;
+- checkpoint/resume behaviour;
+- Parquet readability;
+- metadata generation;
+- validation;
+- reconciliation.
+
+Failure blocks the one-million-patient Batch.
+
+---
+
+## 17. Production Batch — Gate G3
+
+Commercial target:
+
+`>= 1,000,000 patient records`
+
+Batch completion requires BOTH:
+
+1. target patient count reached; and
+2. required Standard-8 scenario coverage complete.
+
+The target count alone is insufficient.
+
+Chunk settings are memory/output settings only and MUST NOT change simulation semantics.
+
+---
+
+## 18. Batch Recovery and Checkpointing
+
+Production Batch generation MUST support restart/resume.
+
+The Batch process MUST persist enough checkpoint information to recover safely, including:
+
+- completed simulation IDs;
+- current scenario;
+- current generated patient count;
+- current generated event count;
+- output partition state;
+- deterministic seed derivation information.
+
+An interrupted Batch MUST NOT require restarting from zero when valid completed partitions exist.
+
+A critical reconciliation or mass-balance failure MUST stop the affected production Batch.
+
+---
+
+## 19. Output Generation
+
+Production Dataset generation MUST produce:
+
+- `patients.parquet`
+- `patient_events.parquet`
+- `aggregate_timeseries.parquet`
+- `simulation_summary.parquet`
+- `scenario_comparison.csv`
+- `dataset_manifest.json`
+- `validation_report.json`
+- `used_configuration.yaml`
+
+---
+
+## 20. Output Inspection
+
+After generation:
 
 1. confirm expected files exist;
-
-
-2. confirm files can be opened;
-
-
+2. confirm files are readable;
 3. inspect row counts;
-
-
 4. inspect schema;
-
-
 5. inspect scenario ID;
-
-
 6. inspect simulation ID;
-
-
 7. inspect validation status;
-
-
 8. inspect patient/event uniqueness;
-
-
-9. inspect aggregate/patient reconciliation;
-
-
+9. inspect reconciliation;
 10. inspect metadata.
 
+Manifest record counts MUST equal actual Parquet record counts.
 
-
-A file existing on disk does not mean the output is valid.
-
-
----
-
-14. Batch Operation
-
-The commercial Dataset target is:
-
->= 1,000,000 patient records
-
-Batch generation must be incremental.
-
-Approved planning configuration:
-
-patient chunk = 50,000 rows
-event chunk = 100,000 rows
-compression = ZSTD
-partition = scenario_id
-
-The complete Dataset MUST NOT be held in memory.
-
-The Batch process should:
-
-Generate
-    ↓
-Validate
-    ↓
-Write
-    ↓
-Release Memory
-    ↓
-Continue
-
+`configuration_hash` MUST correspond to the preserved `used_configuration.yaml`.
 
 ---
 
-15. Batch Scenario Coverage
+## 21. Batch Scenario Coverage
 
-The Standard Dataset must contain representation from all eight scenarios.
+A Standard Dataset MUST represent all eight scenarios.
 
-Required:
+The minimum completed-run requirement per scenario MUST come from approved configuration.
 
-S1
-S2
-S3
-S4
-S5
-S6
-S7
-S8
-
-The Batch process MUST record scenario coverage.
-
-If one of the required Standard-8 scenarios is absent, the Standard Dataset is incomplete.
-
+OpenCode MUST NOT invent a minimum coverage count.
 
 ---
 
-16. Batch Failure Policy
+## 22. Batch Failure Policy
 
-A production Batch MUST NOT be released when:
-
-mass balance fails;
-
-aggregate/patient reconciliation fails;
-
-required validation fails;
-
-required scenario coverage is missing;
-
-required output files are missing;
-
-output files cannot be read;
-
-Dataset metadata is incomplete.
-
-
-The resulting Dataset status must be:
-
-NOT RELEASABLE
-
-until the failure is resolved.
-
+A production Dataset is `REJECTED` / `NOT RELEASABLE` when critical validation fails, required scenario coverage is missing, required outputs are absent/unreadable, or metadata is incomplete.
 
 ---
 
-17. Dataset Metadata
+## 23. Dataset Identity
 
-A commercial Dataset must contain metadata including:
+Each production Dataset MUST receive a stable Dataset ID.
 
-Product ID;
+Reserved IDs MUST NOT be silently reused for a different failed or replacement build.
 
-Dataset ID;
+Example:
 
-Dataset Version;
-
-Engine Version;
-
-Scenario Pack;
-
-Patient Record Count;
-
-Patient Event Count;
-
-Generation Timestamp;
-
-Data Type;
-
-Configuration Hash;
-
-Validation Status;
-
-License ID.
-
-
-Patient and event counts MUST be calculated from the generated data.
-
-They MUST NOT be hard-coded.
-
+`HFSG-DS-STD8-2026-0001`
 
 ---
 
-18. Dataset Release
+## 24. Release States
 
-A Dataset can be released only when:
+Operational release states:
 
-validation_status = PASS
+1. `DEVELOPMENT`
+2. `VALIDATED`
+3. `RELEASED`
+4. `REJECTED`
 
-and:
+Validation PASS moves a technically valid dataset to `VALIDATED`.
 
-required files exist;
-
-metadata is complete;
-
-configuration is preserved;
-
-random seed policy is recorded;
-
-mass balance passes;
-
-reconciliation passes;
-
-uniqueness checks pass;
-temporal consistency passes;
-
-scenario coverage passes;
-
-Parquet files are readable.
-
-
-Otherwise:
-
-NOT RELEASABLE
-
+Only explicit project-owner approval moves it to `RELEASED`.
 
 ---
 
-19. Development vs Production Runs
+## 25. Development vs Validation vs Production
 
-HFSG operations should distinguish between:
+### Development Run
+Small, fast, debugging-oriented.
 
-Development Run
+### Validation Run
+Complete behaviour validation including Standard-8.
 
-Purpose:
-
-debugging;
-
-testing;
-
-rapid iteration;
-
-small datasets.
-
-
-Development runs may use small horizons and small patient counts.
-
-Validation Run
-
-Purpose:
-
-verify the complete approved behaviour;
-
-execute Standard-8;
-
-verify validation and reconciliation.
-
-
-Production Batch
-
-Purpose:
-
-generate the approved commercial Dataset volume;
-
-produce complete metadata;
-
-produce the final validation report.
-
+### Production Batch
+Commercial target volume and complete product metadata.
 
 Do not use a large production Batch as the primary debugging method.
 
+---
+
+## 26. Logging
+
+At minimum logs SHOULD identify:
+
+- simulation ID;
+- scenario ID;
+- configuration version;
+- model version;
+- master/child seed;
+- execution status;
+- validation status;
+- errors/critical failures.
 
 ---
 
-20. Reproducibility Test
-
-A reproducibility test should:
-
-1. select a fixed configuration;
-
-
-2. select a fixed scenario;
-
-
-3. select a fixed random seed;
-
-
-4. run the simulation;
-
-
-5. save the relevant outputs;
-
-
-6. repeat using the same inputs;
-
-
-7. compare the defined test outputs.
-
-
-
-A reproducibility failure must be investigated rather than ignored.
-
-
----
-
-21. Logging
-
-The system SHOULD record enough information to identify a simulation run.
-
-At minimum, logs should make it possible to identify:
-
-simulation ID;
-
-scenario ID;
-
-configuration version;
-
-model version;
-
-random seed;
-
-execution status;
-
-validation status;
-
-errors or critical failures.
-
-
-Logs MUST NOT silently hide critical validation failures.
-
-
----
-
-22. Operational Troubleshooting
+## 27. Operational Troubleshooting
 
 When a run fails:
 
-1. identify the failure type;
+1. identify failure type;
+2. identify responsible component;
+3. inspect configuration;
+4. inspect validation output;
+5. reproduce with the smallest useful case;
+6. fix the underlying issue;
+7. rerun affected validation;
+8. only then continue.
 
-
-2. identify the component responsible;
-
-
-3. inspect the relevant configuration;
-
-
-4. inspect the validation output;
-
-
-5. reproduce with the smallest useful test case;
-
-
-6. fix the underlying implementation or configuration;
-
-
-7. rerun the affected validation;
-
-
-8. only then continue to larger execution.
-
-
-
-Do not bypass a failed validation simply to continue the Batch.
-
+Do not bypass failed validation.
 
 ---
 
-23. Operational Decision Rules
+## 28. Operational Decision Rules
 
-If a required value is missing:
+Missing required value: `DECISION_REQUIRED`
 
-DECISION_REQUIRED
+Specification conflict: `SPEC_CONFLICT`
 
-If project specifications conflict:
+Critical generated-data/model violation: `CRITICAL`
 
-SPEC_CONFLICT
-
-If the generated data violates a critical invariant:
-
-CRITICAL
-
-These states must remain visible in logs/reports.
-
+These states MUST remain visible in logs/reports.
 
 ---
 
-24. Phase 1 Operational Completion
+## 29. Phase 1 Operational Completion
 
-Phase 1 operations are considered complete when the system can:
+Phase 1 operations are complete when the system can:
 
 1. load approved configuration;
-
-
 2. execute S1 baseline;
-
-
-3. generate valid patient data;
-
-
+3. generate valid initial and arrival patient data;
 4. generate valid patient events;
-
-
 5. reconcile aggregate and patient data;
-
-
-6. validate the simulation;
-
-
+6. validate simulation;
 7. execute S1–S8;
-
-
 8. execute CUSTOM;
+9. generate required outputs;
+10. pass G1 Demo;
+11. pass 100,000-patient G2 dry run;
+12. perform approved `>=1,000,000` patient Batch;
+13. satisfy Standard-8 coverage;
+14. produce Dataset metadata;
+15. produce Validation Report;
+16. reach `VALIDATED`;
+17. support project-owner approval to `RELEASED`.
 
+Final technical validation condition:
 
-9. generate the required outputs;
-
-
-10. perform a 100,000-patient dry run;
-
-
-11. perform the approved >=1,000,000-patient Batch;
-
-
-12. produce Dataset metadata;
-
-
-13. produce a validation report;
-
-
-14. confirm the final Dataset is releasable.
-
-
-
-The final release condition is:
-
-validation_status = PASS
-
-with no unresolved critical validation failure.
+`validation_status = PASS`
