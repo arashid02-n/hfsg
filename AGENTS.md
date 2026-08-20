@@ -1,473 +1,351 @@
-AGENTS.md
+# HFSG — OpenCode Agent Instructions
 
-HFSG — OpenCode Agent Instructions
+**Project:** Hospital Flow Scenario Generator  
+**Document Status:** FROZEN v1.0  
+**Frozen Date:** 2026-08-18  
+**Implementation Target:** Phase 1 — MVP
 
-1. Project Identity
+---
 
-Project: Hospital Flow Scenario Generator
-Abbreviation: HFSG
+## 1. Project Identity
 
 HFSG is a synthetic hospital-flow simulation and data-generation system.
 
-The current implementation target is Phase 1 — MVP.
+Phase 1 must produce a small but fully executable system capable of:
 
-The goal of Phase 1 is to produce a small but fully executable system capable of:
-
-aggregate hospital-flow simulation;
-
-synthetic patient generation;
-
-patient-event generation;
-
-Standard-8 scenarios;
-
-one CUSTOM scenario;
-
-aggregate/patient reconciliation;
-
-validation;
-
-reproducible simulation;
-
-Parquet output;
-
-Batch generation;
-
-final validation and dataset packaging.
-
-
+- aggregate hospital-flow simulation;
+- synthetic initial and arrival patient generation;
+- patient-event generation;
+- integer patient quota allocation;
+- Standard-8 scenarios;
+- one CUSTOM scenario;
+- aggregate/patient reconciliation;
+- validation;
+- reproducible simulation;
+- Parquet output;
+- Batch generation;
+- final validation and dataset packaging.
 
 ---
 
-2. Authoritative Project Documents
+## 2. Authoritative Project Documents
 
-Before making implementation decisions, read the relevant project documentation.
+| Concern | Authority |
+|---|---|
+| Agent behaviour | `AGENTS.md` |
+| Model behaviour/equations/invariants | `MODEL.md` |
+| Parameter values | approved YAML |
+| Product scope | `PRODUCT.md` |
+| Software structure | `ARCHITECTURE.md` |
+| Operational workflow | `OPERATIONS.md` |
+| Scientific provenance | original scientific paper |
+| Reference material | supporting PDFs/XLSX |
 
-The repository contains:
+Rules:
 
-PRODUCT.md
-MODEL.md
-ARCHITECTURE.md
-OPERATIONS.md
-AGENTS.md
-
-Their responsibilities are:
-
-File Authority
-
-AGENTS.md Agent behaviour and development rules
-MODEL.md Model behaviour, equations, invariants and validation rules
-Approved YAML configuration Parameter values
-PRODUCT.md Product scope and requirements
-ARCHITECTURE.md Approved software structure
-OPERATIONS.md Approved operational workflow
-Original scientific paper Scientific provenance
-Supporting PDFs/XLSX Reference material
-
-
-For model behaviour, MODEL.md is authoritative.
-
-For product scope, PRODUCT.md is authoritative.
-
-For implementation parameters, approved YAML configuration is authoritative.
-
-The original scientific paper provides scientific provenance and MUST NOT silently override the approved HFSG production model.
-
+- `AGENTS.md` MUST NOT override `MODEL.md` on mathematical/simulation behaviour.
+- `ARCHITECTURE.md` MUST NOT override `MODEL.md` on model behaviour.
+- `OPERATIONS.md` MUST NOT override `PRODUCT.md` or `MODEL.md`.
+- the source paper MUST NOT silently override approved Model B.
 
 ---
 
-3. Model Distinction
+## 3. Model Distinction
 
-HFSG contains two conceptually separate model layers.
+Model A is scientific reference/provenance.
 
-Model A — Scientific Reference Model
+Model B is the production model.
 
-Based on Al-Karkhi & Byatt (2025).
+HFSG engineering extensions include:
 
-It is used for:
+- stochastic arrivals;
+- explicit capacity controls;
+- integer flow allocation;
+- initial patient population;
+- patient-level entities;
+- Patient Generator;
+- Patient Event Generator;
+- scenario framework;
+- Batch generation;
+- Parquet output;
+- reconciliation;
+- validation;
+- product versioning.
 
-scientific provenance;
-
-comparison;
-
-understanding the original compartmental model.
-
-
-The paper does not define the HFSG individual synthetic Patient Generator or Patient Event Generator.
-
-Model B — HFSG Production Model
-
-Model B is the actual model to be implemented by the HFSG Core Engine.
-
-The following are HFSG engineering extensions and MUST remain distinguishable from the original paper:
-
-stochastic arrival generation;
-
-explicit capacity controls;
-
-patient-level entities;
-
-Patient Generator;
-
-Patient Event Generator;
-
-scenario framework;
-
-Batch generation;
-
-Parquet output;
-
-reconciliation;
-
-product validation;
-
-product versioning.
-
-
-Do not claim these extensions are findings or equations directly published in the source paper.
-
+Do not claim these extensions are directly published findings/equations from the source article.
 
 ---
 
-4. Scope Control
+## 4. Scope Control
 
-Implement only approved requirements.
+Implement only approved Phase 1 requirements.
 
-Do NOT independently expand the project.
+Do NOT independently add:
 
-Do NOT add:
+- ML;
+- LLM functionality;
+- digital twin functionality;
+- clinical variables;
+- diagnoses;
+- medications;
+- labs;
+- vital signs;
+- clinical notes;
+- new departments;
+- new patient routes;
+- HIS/EHR/FHIR;
+- public APIs;
+- authentication;
+- payment systems;
+- multi-user administration;
+- database infrastructure;
+- cloud architecture.
 
-machine learning;
-
-LLM functionality;
-
-digital twin functionality;
-
-clinical variables;
-
-diagnosis generation;
-
-medication data;
-
-laboratory data;
-
-vital signs;
-
-clinical notes;
-
-new hospital departments;
-
-new patient routes;
-
-HIS/EHR/FHIR integration;
-
-public APIs;
-
-authentication;
-
-payment systems;
-
-multi-user administration;
-
-database infrastructure;
-
-cloud architecture;
-
-
-unless explicitly approved by the project owner.
-
-Do not turn Phase 1 into a larger commercial platform.
-
+Do not turn Phase 1 into a larger platform.
 
 ---
 
-5. No Silent Decisions
+## 5. No Silent Decisions
 
-If a required implementation decision is missing or ambiguous, do NOT invent it.
+If a required decision is missing or ambiguous, report:
 
-Use:
+`DECISION_REQUIRED`
 
-DECISION_REQUIRED
+Do not invent it.
 
-Examples include:
+Examples:
 
-missing clinical variables;
-
-missing diagnosis probabilities;
-
-missing mortality parameters;
-
-missing patient attribute distributions;
-
-missing scenario multipliers;
-
-missing capacity rules;
-
-missing patient routes;
-
-missing ICU priorities;
-
-missing discharge/death selection rules;
-
-missing real-hospital calibration parameters.
-
-
-Stop the affected implementation and identify the missing decision.
-
+- missing scenario values;
+- missing capacity rules;
+- missing patient routes;
+- missing patient distributions;
+- missing selection rules;
+- missing calibration values;
+- unapproved replacement integerization rule;
+- unapproved intra-timestep behaviour;
+- unspecified initial-patient prior-stay rule where required.
 
 ---
 
-6. Conflict Handling
+## 6. Conflict Handling
 
-If authoritative project documents disagree, do NOT silently choose one.
+If authoritative documents disagree, report:
 
-Report:
-
-SPEC_CONFLICT
+`SPEC_CONFLICT`
 
 Identify:
 
-1. the conflicting documents;
+1. conflicting documents;
+2. conflicting statements;
+3. required implementation decision.
 
-
-2. the conflicting statements;
-
-
-3. the implementation decision that is required.
-
-
-
-Do not modify one specification merely to remove the conflict.
-
+Do not silently rewrite a specification to match code.
 
 ---
 
-7. Configuration Rules
+## 7. Configuration Rules
 
 Model parameters MUST come from approved configuration.
-Do not silently hard-code configurable parameters into the simulation engine.
+
+Do not silently hard-code configurable parameters.
 
 Scenario definitions MUST come from configuration.
 
-Scenario logic MUST NOT modify the mathematical model or create separate mathematical engines.
-
-A scenario changes approved parameters, not model structure.
-
+Scenario logic MUST NOT change the mathematical model.
 
 ---
 
-8. Standard Scenario Pack
+## 8. Standard Scenario Pack
 
-The approved scenario set is:
+Approved scenarios:
 
-S1 — Normal Operation
-S2 — Busy Week
-S3 — Crisis Mode
-S4 — ICU Capacity Loss
-S5 — Bed Block
-S6 — Compound Stress
-S7 — Emergency Wave
-S8 — Recovery Strategy
-CUSTOM — Customer Scenario
+- S1 — Normal Operation
+- S2 — Busy Week
+- S3 — Crisis Mode
+- S4 — ICU Capacity Loss
+- S5 — Bed Block
+- S6 — Compound Stress
+- S7 — Emergency Wave
+- S8 — Recovery Strategy
+- CUSTOM — Customer Scenario
 
-All Standard-8 scenarios and CUSTOM must use the same approved HFSG Core Engine.
-
-Do not create separate simulation engines for individual scenarios.
-
+All use the same Core Engine.
 
 ---
 
-9. Model Invariants
+## 9. Model Invariants
 
-All implementation MUST preserve the invariants defined in MODEL.md.
+All implementation MUST preserve `MODEL.md` invariants.
 
 In particular:
 
-no negative stocks;
+- no negative stocks;
+- no flow greater than source stock;
+- no unauthorized capacity violation;
+- destination shares sum to one;
+- no NaN/Inf;
+- mass balance passes;
+- valid integer allocation;
+- unique patient IDs;
+- unique event IDs;
+- chronological events;
+- no post-terminal events;
+- one active location per patient;
+- aggregate/patient reconciliation passes;
+- seed reproducibility.
 
-no flow greater than source stock;
-
-no unauthorized capacity violation;
-
-destination shares sum to one;
-
-no NaN/Inf;
-
-mass balance passes;
-
-unique patient IDs;
-
-unique event IDs;
-
-chronological events;
-
-no post-terminal events;
-
-one active location per patient;
-
-aggregate/patient reconciliation passes;
-
-seed reproducibility.
-
-
-Do not weaken or remove validation rules to make a simulation pass.
-
+Do not weaken validation to make a run pass.
 
 ---
 
-10. Patient-Level Rules
+## 10. Aggregate-to-Patient Authority
 
-Every synthetic patient must have a unique:
+The Aggregate Engine determines HOW MANY patients move.
 
-patient_id
+The Patient Event Generator determines WHICH patients move.
 
-Every event must have a unique:
+The Patient Event Generator MUST NOT independently modify approved integer patient quotas.
 
-event_id
+Raw continuous flows MUST be converted to integer patient quotas using:
 
-Patient events MUST obey the rules in MODEL.md.
+`Largest Remainder Method + seeded deterministic tie-break`
+
+Do not replace it without explicit approval.
+
+---
+
+## 11. Initial Patient Population
+
+At simulation initialization, patient entities MUST be created to match approved initial active stocks:
+
+- `E(0)`
+- `C(0)`
+- `G(0)`
+- `I(0)`
+
+Do not start patient-level simulation with an empty patient population when aggregate initial stocks are non-zero.
+
+If a required initial-patient attribute is not specified, report `DECISION_REQUIRED`.
+
+---
+
+## 12. Timestep Eligibility
+
+Patients arriving during timestep `t` MUST NOT be eligible for transfer, discharge, or death during timestep `t`.
+
+Eligibility begins at `t+1`.
+
+---
+
+## 13. Capacity Timing
+
+Destination capacity MUST be evaluated using beginning-of-step occupancy.
+
+Capacity released during timestep `t` becomes available beginning at `t+1`.
+
+Do not implement intra-timestep bed reuse in Phase 1.
+
+---
+
+## 14. Patient-Level Rules
+
+Every patient has a unique `patient_id`.
+
+Every event has a unique `event_id`.
 
 A patient:
 
-cannot occupy two units simultaneously;
-
-cannot transfer before arrival;
-
-cannot have events after discharge;
-
-cannot have events after death;
-
-must have a valid terminal outcome;
-
-must remain consistent with aggregate flows.
-
-
-Patient-level behaviour must reconcile with the aggregate model.
-
+- cannot occupy two units simultaneously;
+- cannot transfer before arrival;
+- cannot have events after discharge;
+- cannot have events after death;
+- must have a valid terminal outcome or approved active-at-end state;
+- must remain consistent with aggregate state.
 
 ---
 
-11. Scientific Parameter Provenance
+## 15. Scientific Parameter Provenance
 
-Every model parameter must have an appropriate provenance classification:
+Every model parameter must have one appropriate provenance classification:
 
-PAPER
-TRANSFORMED
-EXPERT
-ASSUMPTION
-CALIBRATED
+- `PAPER`
+- `TRANSFORMED`
+- `EXPERT`
+- `ASSUMPTION`
+- `CALIBRATED`
 
-Do not label an assumed parameter as PAPER.
-
-Patient attributes such as age group, sex, severity and arrival mode must remain configurable assumptions unless explicitly supported by an approved source.
-
+Do not label an assumption as `PAPER`.
 
 ---
 
-12. Validation Behaviour
+## 16. Validation Behaviour
 
-Validation is a required part of the implementation.
+Validation is required.
 
-A successful execution is not defined merely by the program completing without an exception.
+A successful program exit does not mean valid data.
 
-The system must verify the approved validation requirements.
+Critical reconciliation or mass-balance failure MUST fail the affected production Batch.
 
-A critical reconciliation or mass-balance failure MUST cause the affected production Batch to fail.
-
-Do not suppress validation errors.
-
-Do not convert validation failures into warnings without explicit approval.
-
+Do not suppress validation failures.
 
 ---
 
-13. Reproducibility
+## 17. Reproducibility
 
-Every simulation must preserve:
+Every Batch MUST use a controlled `master_seed`.
 
-model version;
+Each run MUST use a deterministic child seed derived from:
 
-configuration version;
+- master seed;
+- scenario ID;
+- run index.
 
-scenario ID;
-
-simulation ID;
-
-random seed;
-
-generation timestamp.
-
-
-Fixed configuration and fixed seed must reproduce the defined deterministic/stochastic test fixture.
+The child seed MUST be recorded.
 
 Do not introduce uncontrolled randomness.
 
+---
+
+## 18. Output Requirements
+
+Approved outputs:
+
+- `patients.parquet`
+- `patient_events.parquet`
+- `aggregate_timeseries.parquet`
+- `simulation_summary.parquet`
+- `scenario_comparison.csv`
+- `dataset_manifest.json`
+- `validation_report.json`
+- `used_configuration.yaml`
+
+Do not replace required formats without approval.
+
+The complete Dataset MUST NOT be held in RAM.
 
 ---
 
-14. Output Requirements
+## 19. Development Workflow
 
-The approved outputs include:
+Before implementing a component:
 
-patients.parquet
-patient_events.parquet
-aggregate_timeseries.parquet
-simulation_summary.parquet
-scenario_comparison.csv
-dataset_manifest.json
-validation_report.json
-used_configuration.yaml
-
-Do not replace required outputs with arbitrary formats without approval.
-
-The complete dataset MUST NOT be kept in RAM during Batch generation.
-
-
----
-
-15. Development Workflow
-
-Work incrementally.
-
-Before implementing a new component:
-
-1. read the relevant specification;
-
-
-2. identify its inputs;
-
-
-3. identify its outputs;
-
-
-4. identify its invariants;
-
-
+1. read relevant specification;
+2. identify inputs;
+3. identify outputs;
+4. identify invariants;
 5. implement the smallest approved version;
-
-
-6. run the relevant tests;
-
-
-7. inspect the output;
-
-
+6. run relevant tests;
+7. inspect outputs;
 8. fix failures;
-
-
 9. only then continue.
-
-
 
 Do not implement the entire project in one uncontrolled operation.
 
-
 ---
 
-16. Phase 1 Implementation Order
+## 20. Phase 1 Implementation Order
 
-The intended implementation sequence is:
-
+```text
 Documentation
     ↓
 Repository / Environment
@@ -476,9 +354,13 @@ Configuration / YAML
     ↓
 Aggregate Simulation Engine
     ↓
+Integer Flow Allocator
+    ↓
 S1 Baseline
     ↓
 Validation
+    ↓
+Initial Patient Population
     ↓
 Patient Generator
     ↓
@@ -490,124 +372,126 @@ S1–S8 + CUSTOM
     ↓
 Output Pipeline
     ↓
+100k Dry Run
+    ↓
 Batch Generation
     ↓
 Final Validation
     ↓
 Release Package
-Do not skip foundational validation and move directly to large-scale Batch generation.
+```
 
+Do not skip foundational validation.
 
 ---
 
-17. Batch Generation Rules
+## 21. Batch Generation Rules
 
-The commercial Dataset target is:
+Commercial target:
 
->= 1,000,000 patient records
+`>= 1,000,000 patient records`
 
-The Batch process must use chunked generation and writing.
+Completion requires BOTH:
 
-Current approved planning configuration:
+1. target volume reached;
+2. required Standard-8 coverage complete.
 
-patient chunk: 50,000 rows;
+Current planning values:
 
-event chunk: 100,000 rows;
-
-Parquet compression: ZSTD;
-
-partition key: scenario_id.
-
+- patient write buffer: 50,000;
+- event write buffer: 100,000;
+- ZSTD compression;
+- partition key: `scenario_id`.
 
 Do not load the complete Dataset into memory.
 
-
 ---
 
-18. Code Quality Rules
+## 22. Code Quality Rules
 
-Keep the implementation:
+Keep implementation:
 
-modular;
-
-readable;
-
-testable;
-
-deterministic where required;
-
-configuration-driven;
-
-consistent with MODEL.md;
-
-free of duplicated scenario-specific model logic.
-
+- modular;
+- readable;
+- testable;
+- deterministic where required;
+- configuration-driven;
+- consistent with `MODEL.md`;
+- free of duplicated scenario-specific model logic.
 
 Do not introduce unnecessary frameworks or infrastructure.
 
-Prefer simple implementations that satisfy the approved specification.
+---
 
+## 23. Phase 1 Simplicity Rule
+
+When multiple implementations satisfy the approved specification, prefer the simplest implementation that:
+
+- preserves `MODEL.md` invariants;
+- passes required tests;
+- is reproducible;
+- is readable;
+- is configuration-driven;
+- works within available hardware constraints.
+
+Do not optimize for hypothetical future requirements.
 
 ---
 
-19. Change Rules
+## 24. Change Rules
 
-Do not modify:
+Do not modify without explicit project decision:
 
-mathematical equations;
-
-model structure;
-
-scenario definitions;
-
-validation requirements;
-
-patient selection rules;
-
-product scope;
-
-authoritative documentation;
-
-
-without an explicit project decision.
-
-If a change is necessary, identify it before implementing it.
-
+- mathematical equations;
+- model structure;
+- integerization method;
+- timestep eligibility;
+- capacity timing;
+- scenario definitions;
+- validation requirements;
+- patient selection rules;
+- product scope;
+- frozen documentation.
 
 ---
 
-20. Documentation Consistency
+## 25. Documentation Consistency
 
-When implementation changes an approved behaviour, documentation must not silently become outdated.
+If implementation conflicts with frozen documentation, stop and report:
 
-If a proposed implementation conflicts with PRODUCT.md or MODEL.md, stop and report:
+`SPEC_CONFLICT`
 
-SPEC_CONFLICT
-
-Do not silently rewrite the specification to match the code.
-
+Do not silently rewrite specifications to match code.
 
 ---
 
-21. Definition of Done
+## 26. Task Completion Reporting
 
-A component is not considered complete merely because its code runs.
+Before reporting an implementation task complete:
 
-It is complete only when:
+1. run relevant unit tests;
+2. run relevant validation tests;
+3. inspect generated outputs;
+4. confirm no approved invariant is violated;
+5. report files changed;
+6. report tests executed;
+7. report PASS/FAIL status;
+8. report unresolved `DECISION_REQUIRED` or `SPEC_CONFLICT`.
 
-its approved behaviour is implemented;
+Do not report completion when relevant tests have not been executed.
 
-required tests pass;
+---
 
-validation rules pass;
+## 27. Definition of Done
 
-outputs match the approved schema;
+A component is complete only when:
 
-reproducibility requirements are satisfied;
+- approved behaviour is implemented;
+- required tests pass;
+- validation passes;
+- outputs match approved schema;
+- reproducibility requirements are satisfied;
+- no unresolved `DECISION_REQUIRED` affects the component;
+- no unresolved `SPEC_CONFLICT` affects the component.
 
-no unresolved DECISION_REQUIRED remains for that component;
-
-no unresolved SPEC_CONFLICT affects the implementation.
-
-
-Phase 1 is complete only when its approved Product Success Criteria in PRODUCT.md are satisfied.
+Phase 1 is complete only when Product Success Criteria in `PRODUCT.md` are satisfied.
