@@ -34,6 +34,7 @@ from .units import (
     TRANSFERS,
     UNIT_TO_STOCK_FIELD,
 )
+from .validation import AggregateValidator
 
 _FLOAT_EPS = 1e-9
 
@@ -133,7 +134,7 @@ class RunResult:
 class AggregateEngine:
     """Aggregate Model B hospital-flow simulation engine."""
 
-    def __init__(self, config, context) -> None:
+    def __init__(self, config, context, validator: Optional[Any] = None) -> None:
         self._config = config
         self.context = context
 
@@ -165,10 +166,13 @@ class AggregateEngine:
             )
 
         self.rng = np.random.default_rng(context.child_seed)
-        self.validator = None
+        if validator is None:
+            validator = AggregateValidator(config)
+        self.validator = validator
 
         self.initial = self._build_initial_state(config)
         self._validate_initial_state(self.initial)
+        self.validator.validate_initial(self.initial)
         self.state = self.initial
         self.records: List[TimestepRecord] = []
 

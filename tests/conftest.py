@@ -11,3 +11,8 @@ def loader():
     from hfsg.config import ConfigurationLoader
 
     return ConfigurationLoader()
+
+
+@pytest.fixture()
+def base_config(loader):
+    return loader.load("config/base.yaml")
