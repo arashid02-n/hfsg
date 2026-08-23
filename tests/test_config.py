@@ -12,11 +12,6 @@ def load_raw() -> dict:
 
 
 @pytest.fixture()
-def loader():
-    return ConfigurationLoader()
-
-
-@pytest.fixture()
 def base_data():
     return load_raw()
 
