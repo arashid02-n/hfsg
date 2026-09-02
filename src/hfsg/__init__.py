@@ -20,6 +20,19 @@ from .validation import (
     ValidationIssue,
     ValidationResult,
 )
+from .patients import Patient, PatientGenerator
+from .quota import IntegerFlowAllocator, QuotaResult
+from .events import (
+    CRITICAL_RECONCILIATION_FAILURE,
+    PatientEvent,
+    PatientEventGenerator,
+    SimulationClock,
+)
+from .patient_validation import (
+    PatientValidationError,
+    PatientValidationResult,
+    PatientValidator,
+)
 
 __all__ = [
     "Configuration",
@@ -39,5 +52,16 @@ __all__ = [
     "AggregateValidationError",
     "ValidationIssue",
     "ValidationResult",
+    "Patient",
+    "PatientGenerator",
+    "IntegerFlowAllocator",
+    "QuotaResult",
+    "CRITICAL_RECONCILIATION_FAILURE",
+    "PatientEvent",
+    "PatientEventGenerator",
+    "SimulationClock",
+    "PatientValidator",
+    "PatientValidationResult",
+    "PatientValidationError",
 ]
-__version__ = "0.2.0"
+__version__ = "0.3.0"

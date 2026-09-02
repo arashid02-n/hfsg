@@ -177,6 +177,7 @@ class ConfigurationLoader:
         self._validate_time_step(data)
         self._validate_destination_shares(data)
         self._validate_initial_population_vs_capacity(data)
+        self._validate_patient_attributes(data)
         self._validate_batch(data)
 
         return Configuration(data, config_path)
@@ -246,6 +247,47 @@ class ConfigurationLoader:
                 raise ConfigError(
                     f"initial {unit}_census ({census}) exceeds configured "
                     f"{unit} capacity ({capacity})"
+                )
+
+    def _validate_patient_attributes(self, data: Dict[str, Any]) -> None:
+        patient_attributes = data.get("patient_attributes", {})
+        for attr in ("age_group", "sex", "severity_level", "arrival_mode"):
+            spec = patient_attributes.get(attr)
+            if spec is None:
+                raise ConfigError(
+                    f"patient_attributes.{attr} must be configured"
+                )
+            categories = spec.get("categories")
+            probabilities = spec.get("probabilities")
+            if (
+                not isinstance(categories, list)
+                or not categories
+                or not all(isinstance(c, str) for c in categories)
+            ):
+                raise ConfigError(
+                    f"patient_attributes.{attr}.categories must be a "
+                    "non-empty list of strings"
+                )
+            if (
+                not isinstance(probabilities, list)
+                or len(probabilities) != len(categories)
+            ):
+                raise ConfigError(
+                    f"patient_attributes.{attr}.probabilities must match "
+                    "categories length"
+                )
+            if not all(
+                isinstance(p, (int, float)) and not isinstance(p, bool) and p >= 0
+                for p in probabilities
+            ):
+                raise ConfigError(
+                    f"patient_attributes.{attr}.probabilities must be "
+                    "non-negative numbers"
+                )
+            if abs(sum(float(p) for p in probabilities) - 1.0) > 1e-6:
+                raise ConfigError(
+                    f"patient_attributes.{attr}.probabilities must sum "
+                    f"to 1, got {sum(probabilities)}"
                 )
 
     def _validate_batch(self, data: Dict[str, Any]) -> None:

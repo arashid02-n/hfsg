@@ -39,6 +39,13 @@ class TestValidConfiguration:
     def test_destination_shares_sum_to_one(self, loader):
         loader.load(BASE_CONFIG)
 
+    def test_patient_attributes_load(self, loader):
+        config = loader.load(BASE_CONFIG)
+        attrs = config.patient_attributes
+        for attr in ("age_group", "sex", "severity_level", "arrival_mode"):
+            assert len(attrs[attr]["categories"]) == len(attrs[attr]["probabilities"])
+            assert abs(sum(attrs[attr]["probabilities"]) - 1.0) < 1e-6
+
 
 class TestValidations:
     def test_missing_section_rejected(self, loader, base_data, tmp_path):
@@ -99,4 +106,21 @@ class TestValidations:
     def test_negative_target_records_rejected(self, loader, base_data, tmp_path):
         base_data["model"]["batch"]["target_patient_records"] = -100
         with pytest.raises(ConfigError, match="positive integer"):
+            loader.load(write_tmp(tmp_path, base_data))
+
+    def test_patient_attributes_missing_attr_rejected(self, loader, base_data, tmp_path):
+        base_data["model"]["patient_attributes"] = {"provenance": "ASSUMPTION"}
+        with pytest.raises(ConfigError, match="patient_attributes.age_group"):
+            loader.load(write_tmp(tmp_path, base_data))
+
+    def test_patient_attributes_bad_probability_sum_rejected(self, loader, base_data, tmp_path):
+        pa = base_data["model"]["patient_attributes"]
+        pa["sex"]["probabilities"] = [0.9, 0.9]
+        with pytest.raises(ConfigError, match="sum to 1"):
+            loader.load(write_tmp(tmp_path, base_data))
+
+    def test_patient_attributes_mismatched_length_rejected(self, loader, base_data, tmp_path):
+        pa = base_data["model"]["patient_attributes"]
+        pa["severity_level"]["categories"].append("Extra")
+        with pytest.raises(ConfigError, match="must match"):
             loader.load(write_tmp(tmp_path, base_data))

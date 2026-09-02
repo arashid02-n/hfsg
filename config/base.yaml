@@ -102,6 +102,34 @@ model:
   patient_attributes:
     provenance: "ASSUMPTION"
 
+    # ASSUMPTION distributions (MODEL.md section 20). Not empirically
+    # validated population values; placeholders approved for Phase 1 MVP.
+    age_group:
+      categories:
+        - "0-17"
+        - "18-44"
+        - "45-64"
+        - "65-79"
+        - "80+"
+      probabilities:
+        - 0.10
+        - 0.25
+        - 0.30
+        - 0.22
+        - 0.13
+
+    sex:
+      categories: ["Female", "Male"]
+      probabilities: [0.52, 0.48]
+
+    severity_level:
+      categories: ["Low", "Medium", "High", "Critical"]
+      probabilities: [0.30, 0.40, 0.20, 0.10]
+
+    arrival_mode:
+      categories: ["Walk-in", "Ambulance", "Transfer"]
+      probabilities: [0.55, 0.35, 0.10]
+
   batch:
     target_patient_records: 1000000
     required_standard_scenarios:
