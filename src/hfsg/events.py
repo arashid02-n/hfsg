@@ -252,6 +252,10 @@ class PatientEventGenerator:
             self._process_ed_non_icu(
                 patients, candidates, hour, clock, events, flow, quota_from=quotas
             )
+        # Ward transfer specialty -> general (MODEL.md TRANSFERS T_CG).
+        self._process_general_transfer(
+            patients, candidates, hour, clock, events, "T_CG", quota_from=quotas
+        )
         # Direct ED exit (home).
         self._process_discharge_home(
             patients, candidates, hour, clock, events, quota_from=quotas
@@ -362,6 +366,29 @@ class PatientEventGenerator:
                 quota_flow=flow,
             )
             self._apply_movement(patient, "ed", dst, event)
+            events.append(event)
+
+    def _process_general_transfer(self, patients, candidates, hour, clock, events, flow, quota_from) -> None:
+        quota = int(quota_from.get(flow, 0))
+        if quota <= 0:
+            return
+        src, dst = _TRANSFER_ENDPOINTS[flow]
+        ordered = self._longest_stay_first(candidates, hour)
+        chosen = self._take(patients, candidates, src, ordered, quota, hour)
+        for patient in chosen:
+            event = PatientEvent(
+                simulation_id=self._simulation_id,
+                scenario_id=self._scenario_id,
+                patient_id=patient.patient_id,
+                event_id=self.new_event_id(),
+                event_datetime=clock.iso(hour),
+                event_hour=hour,
+                event_type=EVENT_TRANSFER,
+                from_unit=src,
+                to_unit=dst,
+                quota_flow=flow,
+            )
+            self._apply_movement(patient, src, dst, event)
             events.append(event)
 
     def _process_discharge_home(self, patients, candidates, hour, clock, events, quota_from) -> None:

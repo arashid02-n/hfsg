@@ -1,25 +1,25 @@
 # HFSG — Step 7 Acceptance Checklist
 
-- [ ] Raw, constrained and realized flows are separate.
-- [ ] Realized integer flow updates operational aggregate stocks.
-- [ ] Realized integer flow drives patient-event generation.
-- [ ] No divergent fractional operational stock remains.
-- [ ] ED admitted-arrival rule is used.
-- [ ] Unmet arrival demand stays outside mass balance.
-- [ ] Active patient count equals aggregate stock for ED/C/G/I.
-- [ ] Discharged count equals H.
-- [ ] Death count equals M.
-- [ ] Event count equals realized quota.
-- [ ] Population identity passes.
-- [ ] Mass balance passes for all 720 S1 hours.
-- [ ] Arrival eligibility starts at t+1.
-- [ ] Beginning-of-step capacity is preserved.
-- [ ] No intra-timestep bed reuse.
-- [ ] No post-hoc reconciliation repair exists.
-- [ ] Seed reproducibility passes.
-- [ ] `test_s1_reconciliation_720h` passes.
-- [ ] Manual S1 720-hour run passes.
-- [ ] No CRITICAL failures.
-- [ ] No unresolved Step-7 SPEC_CONFLICT.
-- [ ] No unresolved Step-7 DECISION_REQUIRED.
-- [ ] Commit pushed to origin/main.
+- [x] Raw, constrained and realized flows are separate.
+- [x] Realized integer flow updates operational aggregate stocks.
+- [x] Realized integer flow drives patient-event generation.
+- [x] No divergent fractional operational stock remains.
+- [x] ED admitted-arrival rule is used.
+- [x] Unmet arrival demand stays outside mass balance.
+- [x] Active patient count equals aggregate stock for ED/C/G/I.
+- [x] Discharged count equals H.
+- [x] Death count equals M.
+- [x] Event count equals realized quota.
+- [x] Population identity passes.
+- [x] Mass balance passes for all 720 S1 hours.
+- [x] Arrival eligibility starts at t+1.
+- [x] Beginning-of-step capacity is preserved.
+- [x] No intra-timestep bed reuse.
+- [x] No post-hoc reconciliation repair exists.
+- [x] Seed reproducibility passes.
+- [x] `test_s1_reconciliation_720h` passes.
+- [x] Manual S1 720-hour run passes.
+- [x] No CRITICAL failures.
+- [x] No unresolved Step-7 SPEC_CONFLICT.
+- [x] No unresolved Step-7 DECISION_REQUIRED.
+- [x] Commit pushed to origin/main.

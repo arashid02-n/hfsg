@@ -33,6 +33,18 @@ from .patient_validation import (
     PatientValidationResult,
     PatientValidator,
 )
+from .reconciliation import (
+    OperationalStocks,
+    ReconciliationFailure,
+    ReconciliationIssue,
+    ReconciliationResult,
+    Reconciler,
+)
+from .simulation import (
+    SimulationDriver,
+    SimulationResult,
+    StepOutcome,
+)
 
 __all__ = [
     "Configuration",
@@ -63,5 +75,13 @@ __all__ = [
     "PatientValidator",
     "PatientValidationResult",
     "PatientValidationError",
+    "OperationalStocks",
+    "Reconciler",
+    "ReconciliationResult",
+    "ReconciliationIssue",
+    "ReconciliationFailure",
+    "SimulationDriver",
+    "SimulationResult",
+    "StepOutcome",
 ]
-__version__ = "0.3.0"
+__version__ = "0.4.0"

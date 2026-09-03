@@ -321,6 +321,19 @@ class AggregateEngine:
         self.records.append(record)
         return record
 
+    def compute_flows(self, hour: int, before: StateSnapshot) -> StepFlows:
+        """Compute requested + constrained flows from beginning-of-step state.
+
+        Public wrapper around the Model B flow computation. Given a
+        beginning-of-step ``before`` StateSnapshot, it draws Poisson
+        arrivals, computes requested flows, and constrains them respecting
+        source stock and beginning-of-step destination capacity (MODEL.md
+        sections 5-11). It does NOT mutate engine state, so callers may feed
+        integer operational stocks to drive a discrete patient layer (Model
+        v1.0.1 flow pipeline).
+        """
+        return self._compute_flows(hour, before)
+
     def _compute_flows(self, hour: int, before: StateSnapshot) -> StepFlows:
         e = before.ed_census
         c = before.specialty_census
