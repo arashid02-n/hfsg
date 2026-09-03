@@ -1,0 +1,10 @@
+{
+  "package": "HFSG Step 7 Execution Pack",
+  "status": "APPROVED TO EXECUTE",
+  "files": {
+    "HFSG_Model_Clarification_v1.0.1.md": "fb898a150f7e2253de8646c5a02302710fd23dcda9580521a0fea35b220df297",
+    "HFSG_OpenCode_Step7_Prompt.md": "c4d9911eac48fb08b500b44523500027208534afb5ed30793d8163c1bdfba3be",
+    "HFSG_Step7_Acceptance_Checklist.md": "d1962a1fed0b3da2a85672c06de7e86d7e84bb2181803ee919795a286b55f2c3",
+    "HFSG_Step7_Execution_Instruction.md": "d9a1c662aea78b1dda0ee670b0779ba72957efd1296f76272ba4b3b0db869394"
+  }
+}

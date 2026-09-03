@@ -1,0 +1,25 @@
+# HFSG — Step 7 Acceptance Checklist
+
+- [ ] Raw, constrained and realized flows are separate.
+- [ ] Realized integer flow updates operational aggregate stocks.
+- [ ] Realized integer flow drives patient-event generation.
+- [ ] No divergent fractional operational stock remains.
+- [ ] ED admitted-arrival rule is used.
+- [ ] Unmet arrival demand stays outside mass balance.
+- [ ] Active patient count equals aggregate stock for ED/C/G/I.
+- [ ] Discharged count equals H.
+- [ ] Death count equals M.
+- [ ] Event count equals realized quota.
+- [ ] Population identity passes.
+- [ ] Mass balance passes for all 720 S1 hours.
+- [ ] Arrival eligibility starts at t+1.
+- [ ] Beginning-of-step capacity is preserved.
+- [ ] No intra-timestep bed reuse.
+- [ ] No post-hoc reconciliation repair exists.
+- [ ] Seed reproducibility passes.
+- [ ] `test_s1_reconciliation_720h` passes.
+- [ ] Manual S1 720-hour run passes.
+- [ ] No CRITICAL failures.
+- [ ] No unresolved Step-7 SPEC_CONFLICT.
+- [ ] No unresolved Step-7 DECISION_REQUIRED.
+- [ ] Commit pushed to origin/main.
