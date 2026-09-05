@@ -75,6 +75,8 @@ Target production volume:
 
 `>= 1,000,000 patient records`
 
+> **Amendment 2026-09-05 (HFSG-PH1-DEV-001 — Project Owner decision):** Phase 1 approved Acceptance Scale = approximately 100,000 synthetic patients. The `>= 1,000,000` target above is DEFERRED to Phase 2 as Scale Qualification (hardware/storage-limited; the deferral is NOT a Phase 1 defect or failure). Released Phase 1 dataset: `HFSG-DS-STD8-2026-20260905-120702` (109,119 patient records). Model B semantics and implementation logic are unchanged.
+
 Patient event volume MUST be calculated from the generated data and MUST NOT be hard-coded.
 
 Primary outputs:
@@ -272,6 +274,8 @@ Default commercial Batch target:
 
 `>= 1,000,000 patient records`
 
+> **Amendment 2026-09-05 (HFSG-PH1-DEV-001):** Phase 1 approved Acceptance Scale = approximately 100,000 synthetic patients; the `>= 1,000,000` batch target is DEFERRED to Phase 2 as Scale Qualification (hardware/storage-limited; not a Phase 1 failure). Model B semantics unchanged.
+
 A Standard-8 commercial Batch is complete only when BOTH:
 
 1. `actual_patient_count >= target_patient_records`; and
@@ -376,7 +380,7 @@ Phase 1 is successful when the system can:
 4. run Standard-8;
 5. execute a customer scenario;
 6. complete a 100,000-patient dry run;
-7. complete a `>=1,000,000` patient Batch;
+7. complete a `>=1,000,000` patient Batch — DEFERRED to Phase 2 Scale Qualification per HFSG-PH1-DEV-001 (Phase 1 approved Acceptance Scale: approximately 100,000 synthetic patients, satisfied and exceeded by the released dataset);
 8. generate versioned Parquet packages;
 9. generate Manifest and Validation Report automatically;
 10. package the output as an identifiable HFSG Data Product;

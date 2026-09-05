@@ -579,6 +579,8 @@ Commercial Dataset target:
 
 `target_patient_records >= 1,000,000`
 
+> **Amendment 2026-09-05 (HFSG-PH1-DEV-001 — Project Owner decision):** Phase 1 approved Acceptance Scale = approximately 100,000 synthetic patients; the `>= 1,000,000` target above is DEFERRED to Phase 2 as Scale Qualification (hardware/storage-limited; not a Phase 1 failure). Model equations, invariants and scientific provenance are unchanged.
+
 Current planning values:
 
 - 120 planned runs per Standard-8 scenario;

@@ -10,7 +10,7 @@
     "Arrival at timestep t becomes movement-eligible at t+1",
     "Capacity uses beginning-of-step occupancy; released capacity becomes available at t+1",
     "Batch uses master_seed -> deterministic child seed per scenario/run",
-    "Batch completion requires >=1,000,000 patient records AND complete Standard-8 coverage"
+    "Batch completion requires >=1,000,000 patient records AND complete Standard-8 coverage — amended by HFSG-PH1-DEV-001 (2026-09-05): Phase 1 approved Acceptance Scale = approximately 100,000 synthetic patients; >=1,000,000 DEFERRED to Phase 2 as Scale Qualification (not a Phase 1 failure)"
   ],
   "step_3_status": "AUTHORIZED after repository root documents and approved YAML are synchronized",
   "files": {

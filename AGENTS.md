@@ -391,6 +391,8 @@ Commercial target:
 
 `>= 1,000,000 patient records`
 
+> **Amendment 2026-09-05 (HFSG-PH1-DEV-001 — Project Owner decision):** Phase 1 approved Acceptance Scale = approximately 100,000 synthetic patients; the `>= 1,000,000` target above is DEFERRED to Phase 2 as Scale Qualification (hardware/storage-limited; not a Phase 1 failure). Batch validation, reproducibility and coverage requirements for Phase 1 are unchanged.
+
 Completion requires BOTH:
 
 1. target volume reached;

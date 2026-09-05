@@ -3,6 +3,8 @@
 **Date:** 5 September 2026
 **Status:** PHASE 1 — RELEASED / COMPLETE
 
+> **Phase 1 data status:** These are SYNTHETIC, SCENARIO-DRIVEN simulated data. They MUST NOT be represented or used as clinically validated, real-world-equivalent, or patient-identifiable clinical data.
+
 ---
 
 ## 1. Project Owner Decision
@@ -15,7 +17,7 @@ Recorded per Project Owner instruction of 5 September 2026:
 - **Commercial dataset:** `HFSG-DS-STD8-2026-20260905-120702`
 - **Commercial release:** RELEASED, subject to all final validation conditions being PASS
 
-The >= 1M deferral is NOT a failure of Phase 1. PRODUCT.md §12 success criterion 6 ("complete a 100,000-patient dry run") is satisfied and exceeded by the production batch.
+The >= 1M deferral is NOT a failure of Phase 1. PRODUCT.md §12 success criterion 6 ("complete a 100,000-patient dry run") is satisfied and exceeded by the production batch. The deferral is formally recorded in `HFSG_PH1-DEV-001_Scale_Qualification_Deferral.md`.
 
 - Project Owner: Mohammad Nazari
 - Approval Date: 5 September 2026

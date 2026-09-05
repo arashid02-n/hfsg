@@ -318,6 +318,8 @@ Commercial target:
 
 `>= 1,000,000 patient records`
 
+> **Amendment 2026-09-05 (HFSG-PH1-DEV-001 — Project Owner decision):** Phase 1 approved Acceptance Scale = approximately 100,000 synthetic patients; the `>= 1,000,000` target above is DEFERRED to Phase 2 as Scale Qualification (hardware/storage-limited; not a Phase 1 failure). Operational validation requirements are unchanged.
+
 Batch completion requires BOTH:
 
 1. target patient count reached; and
@@ -501,7 +503,7 @@ Phase 1 operations are complete when the system can:
 9. generate required outputs;
 10. pass G1 Demo;
 11. pass 100,000-patient G2 dry run;
-12. perform approved `>=1,000,000` patient Batch;
+12. perform approved `>=1,000,000` patient Batch — DEFERRED to Phase 2 Scale Qualification per HFSG-PH1-DEV-001; Phase 1 executed the approved approximately-100,000-patient production Batch;
 13. satisfy Standard-8 coverage;
 14. produce Dataset metadata;
 15. produce Validation Report;

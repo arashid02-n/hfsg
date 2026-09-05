@@ -1,0 +1,30 @@
+# HFSG Phase 1 — exact dependency lock (final release environment)
+#
+# Generated: 2026-09-05
+# Python:    3.12.3 (Linux)
+# Platform:  x86_64 Linux
+# Generator: venv with requirements.txt (numpy, pandas, pyyaml, pyarrow)
+#            + openpyxl (used ONLY for building the Excel preview package)
+#
+# This file records the EXACT versions used to build, test, validate and
+# release dataset HFSG-DS-STD8-2026-20260905-120702. Install with:
+#
+#   python3 -m venv .venv && source .venv/bin/activate
+#   pip install -r requirements-lock.txt
+#
+# Runtime test suite expectation: 177 passing tests.
+# See INSTALLATION_AND_REPRODUCTION.md for the full workflow.
+
+et_xmlfile==2.0.0
+iniconfig==2.3.0
+numpy==2.5.2
+openpyxl==3.1.5
+packaging==26.3
+pandas==3.0.5
+pluggy==1.6.0
+pyarrow==25.0.1
+Pygments==2.21.0
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+PyYAML==6.0.3
+six==1.17.0

@@ -104,3 +104,5 @@ Report:
 ## Stop Rule
 After Step 8 PASS, STOP and request approval for Step 9:
 **100k Dry Run -> >=1,000,000-patient Production Batch -> Final Validation / Release Candidate Packaging.**
+
+> **Amendment 2026-09-05 (HFSG-PH1-DEV-001 — Project Owner decision):** the Step 9 Production Batch for Phase 1 was executed at the approved approximately-100,000-patient Acceptance Scale (released dataset `HFSG-DS-STD8-2026-20260905-120702`, 109,119 patient records); the `>=1,000,000`-patient Batch is DEFERRED to Phase 2 as Scale Qualification.
