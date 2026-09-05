@@ -258,6 +258,68 @@ def read_partitioned(root: Path) -> pd.DataFrame:
     return pd.concat([t.to_pandas() for t in tables], ignore_index=True)
 
 
+def count_part_files(root: Path) -> Dict[tuple, int]:
+    """Return the next part index for each (prefix, scenario_id) on disk.
+
+    Used to resume a Batch without overwriting existing partitions: for every
+    ``<prefix>/scenario_id=<id>/part-*.parquet`` file the next index is the
+    maximum part index plus one.
+    """
+    root = Path(root)
+    counters: Dict[tuple, int] = {}
+    for prefix_dir in sorted(root.iterdir()):
+        if not prefix_dir.is_dir():
+            continue
+        prefix = prefix_dir.name
+        for part_dir in sorted(prefix_dir.glob("scenario_id=*")):
+            scenario_id = part_dir.name.split("=", 1)[1]
+            indices = []
+            for parquet_file in part_dir.glob("part-*.parquet"):
+                name = parquet_file.name
+                try:
+                    indices.append(int(name[len("part-") : -len(".parquet")]))
+                except ValueError:
+                    continue
+            if indices:
+                counters[(prefix, scenario_id)] = max(indices) + 1
+    return counters
+
+
+def write_partition_append(
+    root: Path,
+    prefix: str,
+    scenario_id: str,
+    frame: pd.DataFrame,
+    chunk_rows: int,
+    counters: Dict[tuple, int],
+) -> int:
+    """Append one scenario frame to its partition, continuing part numbering.
+
+    ``counters`` maps ``(prefix, scenario_id)`` -> next part index and is
+    updated in place. Each part file is written with ZSTD compression. Rows
+    for one run are always written as whole parts so a part file corresponds
+    to exactly one simulation run (row counts stay below the chunk threshold).
+    """
+    if frame is None or len(frame) == 0:
+        return 0
+    root = Path(root)
+    part_dir = root / prefix / f"scenario_id={scenario_id}"
+    part_dir.mkdir(parents=True, exist_ok=True)
+    index = counters.get((prefix, scenario_id), 0)
+    written = 0
+    for start in range(0, len(frame), chunk_rows):
+        chunk = frame.iloc[start : start + chunk_rows]
+        pq.write_table(
+            pa.Table.from_pandas(chunk, preserve_index=False),
+            part_dir / f"part-{index:04d}.parquet",
+            compression="zstd",
+        )
+        written += len(chunk)
+        index += 1
+    counters[(prefix, scenario_id)] = index
+    return written
+
+
 def write_csv(path: Path, df: pd.DataFrame) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path, index=False)
@@ -287,22 +349,40 @@ def _event_type_counts(events_df: pd.DataFrame, flow: str, quota_flow_col="quota
 def check_post_serialization(patients_df, events_df) -> List[str]:
     """Return a list of invariant violations found after read-back.
 
-    Checks enforce uniqueness/temporal consistency *within each scenario*, so
-    that patient/event IDs that restart per scenario are not falsely flagged.
+    Checks enforce uniqueness/temporal consistency *within each simulation run*
+    (keyed on simulation_id when present, else scenario_id), so that
+    patient/event IDs that restart per run and per scenario are not falsely
+    flagged.
     Checks:
-      - unique (scenario_id, patient_id) and (scenario_id, event_id)
-      - chronological events per patient within a scenario
+      - unique (simulation_id, patient_id) and (simulation_id, event_id)
+      - chronological events per patient within a run
       - first event is an ARRIVAL for every patient
-      - no post-terminal events within a scenario
+      - no post-terminal events within a run
     """
     violations: List[str] = []
 
-    if patients_df.duplicated(subset=["scenario_id", "patient_id"]).any():
-        violations.append("duplicate (scenario_id, patient_id) in patients.parquet")
-    if events_df.duplicated(subset=["scenario_id", "event_id"]).any():
-        violations.append("duplicate (scenario_id, event_id) in patient_events.parquet")
+    # Uniqueness is enforced per simulation run (patient/event IDs restart for
+    # every run and scenario), so the composite key must include simulation_id
+    # when present; scenario_id only suffices for single-run-per-scenario data.
+    if "simulation_id" in patients_df.columns:
+        patient_key = ["simulation_id", "patient_id"]
+    elif "scenario_id" in patients_df.columns:
+        patient_key = ["scenario_id", "patient_id"]
+    else:
+        patient_key = ["patient_id"]
+    if "simulation_id" in events_df.columns:
+        event_key = ["simulation_id", "event_id"]
+    elif "scenario_id" in events_df.columns:
+        event_key = ["scenario_id", "event_id"]
+    else:
+        event_key = ["event_id"]
 
-    key_cols = ["scenario_id", "patient_id"] if "scenario_id" in events_df.columns else ["patient_id"]
+    if patients_df.duplicated(subset=patient_key).any():
+        violations.append("duplicate patient_id within a simulation run in patients.parquet")
+    if events_df.duplicated(subset=event_key).any():
+        violations.append("duplicate event_id within a simulation run in patient_events.parquet")
+
+    key_cols = patient_key
     per_patient = {}
     for _, ev in events_df.iterrows():
         key = tuple(ev[c] for c in key_cols)
@@ -325,10 +405,10 @@ def check_post_serialization(patients_df, events_df) -> List[str]:
             violations.append(f"{pid} has events after terminal event")
 
     # Every patient must appear in the events stream.
-    if "scenario_id" in patients_df.columns and "patient_id" in patients_df.columns:
+    if all(col in patients_df.columns for col in key_cols):
         patient_keys = set(
-            (sid, pid)
-            for sid, pid in zip(patients_df["scenario_id"], patients_df["patient_id"])
+            tuple(row[c] for c in key_cols)
+            for _, row in patients_df.iterrows()
         )
         event_keys = set(per_patient.keys())
         missing_arrivals = patient_keys - event_keys

@@ -131,7 +131,7 @@ model:
       probabilities: [0.55, 0.35, 0.10]
 
   batch:
-    target_patient_records: 1000000
+    target_patient_records: 100000
     required_standard_scenarios:
       - "S1"
       - "S2"

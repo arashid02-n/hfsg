@@ -206,14 +206,13 @@ def validate_outputs(
     report["scenario_coverage"]["pass"] = not missing
 
     # ---- DECISION_REQUIRED / SPEC_CONFLICT ----
-    # PRODUCT.md requires a License ID in dataset metadata (section 3.2), but
-    # no approved license identifier value exists in the approved documents.
-    # The manifest value is implementation-assigned and requires a project
-    # decision before any commercial RELEASED status (PRODUCT_RELEASED is
-    # separately gated on explicit project-owner approval). This is surfaced
-    # here rather than being silently treated as an approved value.
+    # PRODUCT.md requires a License ID in dataset metadata (section 3.2), and
+    # the frozen documentation defines no license identifier value. The
+    # implementation-assigned identifier HFSG-EULA-1.0 was APPROVED by the
+    # Project Owner (2026-09-05), so it no longer requires a decision. Any
+    # license_id that is missing or not the approved value is still surfaced.
     license_id = manifest.get("license_id", "")
-    if not license_id or license_id == "HFSG-EULA-1.0":
+    if license_id != "HFSG-EULA-1.0":
         report["decision_required"].append(
             {
                 "id": "LICENSE_ID_VALUE",
@@ -221,12 +220,11 @@ def validate_outputs(
                 "current": license_id,
                 "requirement": (
                     "PRODUCT.md (section 3.2) requires a License ID in "
-                    "dataset metadata; no approved license identifier value "
-                    "exists in the frozen documentation."
+                    "dataset metadata; the approved license identifier is "
+                    "HFSG-EULA-1.0."
                 ),
                 "recommendation": (
-                    "Approve the implementation-assigned license identifier "
-                    "HFSG-EULA-1.0 or provide an alternative approved value."
+                    "Use the approved license identifier HFSG-EULA-1.0."
                 ),
             }
         )

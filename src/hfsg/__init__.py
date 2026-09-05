@@ -54,6 +54,8 @@ from .scenarios import (
 )
 from .output import (
     write_partitioned,
+    write_partition_append,
+    count_part_files,
     read_partitioned,
     dataset_manifest,
     check_post_serialization,
@@ -64,6 +66,12 @@ from .pipeline import (
     Pipeline,
     ScenarioRunOutcome,
     Step8Error,
+)
+from .batch import (
+    BatchError,
+    BatchRunner,
+    RunRecord,
+    validate_batch_outputs,
 )
 from .validation_report import (
     ValidationReportError,
@@ -113,6 +121,8 @@ __all__ = [
     "configuration_hash",
     "hash_yaml",
     "write_partitioned",
+    "write_partition_append",
+    "count_part_files",
     "read_partitioned",
     "dataset_manifest",
     "check_post_serialization",
@@ -121,7 +131,11 @@ __all__ = [
     "Pipeline",
     "ScenarioRunOutcome",
     "Step8Error",
+    "BatchError",
+    "BatchRunner",
+    "RunRecord",
+    "validate_batch_outputs",
     "ValidationReportError",
     "validate_outputs",
 ]
-__version__ = "0.5.0"
+__version__ = "0.6.0"

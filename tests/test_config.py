@@ -34,7 +34,7 @@ class TestValidConfiguration:
         config = loader.load(BASE_CONFIG)
         assert config.initial_conditions["ed_census"] == 20
         assert config.capacities["icu"] == 20
-        assert config.batch["target_patient_records"] == 1000000
+        assert config.batch["target_patient_records"] == 100000
 
     def test_destination_shares_sum_to_one(self, loader):
         loader.load(BASE_CONFIG)
