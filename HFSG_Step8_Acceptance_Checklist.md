@@ -1,0 +1,41 @@
+# HFSG — Step 8 Acceptance Checklist
+- [ ] S1 baseline PASS
+- [ ] S2 arrivals +20% PASS
+- [ ] S3 arrivals +50% PASS
+- [ ] S4 ICU capacity -20% PASS
+- [ ] S5 discharge rates -20% PASS
+- [ ] S6 combined override PASS
+- [ ] S7 x2 arrivals exactly 48h PASS
+- [ ] S8 recovery overrides PASS
+- [ ] CUSTOM approved run PASS
+- [ ] Invalid CUSTOM rejected
+- [ ] Same Core Engine used
+- [ ] Base config not mutated
+- [ ] `test_s1_reconciliation_720h` PASS
+- [ ] Aggregate/patient failures = 0
+- [ ] Event/quota mismatches = 0
+- [ ] Mass balance PASS
+- [ ] patients.parquet readable
+- [ ] patient_events.parquet readable
+- [ ] aggregate_timeseries.parquet readable
+- [ ] simulation_summary.parquet readable
+- [ ] scenario_comparison.csv readable
+- [ ] dataset_manifest.json valid
+- [ ] validation_report.json valid
+- [ ] used_configuration.yaml preserved
+- [ ] ZSTD PASS
+- [ ] scenario_id partitioning PASS
+- [ ] Manifest counts match actual output
+- [ ] Configuration hash matches used config
+- [ ] Post-serialization uniqueness PASS
+- [ ] Post-serialization temporal consistency PASS
+- [ ] Post-serialization reconciliation PASS
+- [ ] Scenario coverage PASS
+- [ ] Seed reproducibility PASS
+- [ ] CRITICAL failures = 0
+- [ ] Step-8 DECISION_REQUIRED = 0
+- [ ] Step-8 SPEC_CONFLICT = 0
+- [ ] All automated tests PASS
+- [ ] Completion report supplied
+- [ ] Commit pushed to origin/main
+- [ ] Step 9 not started without approval

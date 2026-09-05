@@ -1,0 +1,24 @@
+{
+  "package": "HFSG Step 8 Execution Pack",
+  "status": "APPROVED TO EXECUTE",
+  "step7_commit": "6b5ba6e",
+  "step9_authorized": false,
+  "files": {
+    "HFSG_OpenCode_Step8_Prompt.md": {
+      "sha256": "3292e226ea3f4fe4e7c6abf5a50b02300b212f17ab7afabd3c04dcd3d3e91df1",
+      "bytes": 1493
+    },
+    "HFSG_Step8_Acceptance_Checklist.md": {
+      "sha256": "850c3a64c38f74dc2e3efe1e046504712d186ad77ae047b6ac6a0f4882227e3b",
+      "bytes": 1418
+    },
+    "HFSG_Step8_Authorization.md": {
+      "sha256": "69decbc67ef7f1281b4ed892f4d3a010122dcae65a9c420f5a56c362df0a20ad",
+      "bytes": 437
+    },
+    "HFSG_Step8_Execution_Instruction.md": {
+      "sha256": "d0ba0543e15017ab1181f106c40e99d84f20c85dd28805623aff87aaf412b457",
+      "bytes": 5161
+    }
+  }
+}
