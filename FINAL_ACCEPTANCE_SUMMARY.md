@@ -20,6 +20,7 @@
 8. **Released dataset** — `HFSG-DS-STD8-2026-20260905-120702` at `data/output/step9`: **109,119 patients / 316,010 events / 58,320 aggregate rows**, 81 runs, S1–S8 + CUSTOM coverage, **VALIDATED** (0 critical failures), **RELEASED**.
 9. **Tests** — 177 passing; `compileall` PASS; `git diff --check` clean.
 10. **Reproducibility** — seed policy, preserved configuration (config hash `f5e1bc49…8dcd`), checkpoint/resume, 9-run replay sample with 0 failures.
+11. **Third-Party / IP / Data Provenance Audit** — PASS; see `THIRD_PARTY_AND_IP_PROVENANCE.md`: no real patient data, no PII, no proprietary third-party code, no undeclared third-party assets; all third-party software is permissive open source (numpy BSD-3, pandas BSD-3, pyarrow Apache-2.0, PyYAML MIT, pytest MIT, openpyxl MIT).
 
 ## 2. What was deferred
 
@@ -46,6 +47,6 @@ These are recommendations only — NOT implemented, NOT a Phase 1 requirement:
 
 ## 5. Deliverable inventory
 
-Source (commit `a63d298`, clean working tree), released dataset `HFSG-DS-STD8-2026-20260905-120702`, `HFSG_PH1-DEV-001_Scale_Qualification_Deferral.md`, `FINAL_RELEASE_CHECKLIST.md`, `FINAL_DATA_DICTIONARY.md`, `requirements-lock.txt`, `INSTALLATION_AND_REPRODUCTION.md`, `FINAL_VALIDATION_REPORT.md`, `HFSG_Phase1_Release_Closeout.md`, `SHA256SUMS.txt`, `HANDOVER_MANIFEST.json`, and the handover ZIP `HFSG_Phase1_Final_Handover_v1.0.zip`.
+Source (commit `9c5e7bd`, clean working tree except intentionally untracked `data/`), released dataset `HFSG-DS-STD8-2026-20260905-120702`, `HFSG_PH1-DEV-001_Scale_Qualification_Deferral.md`, `THIRD_PARTY_AND_IP_PROVENANCE.md`, `FINAL_RELEASE_CHECKLIST.md`, `FINAL_DATA_DICTIONARY.md`, `requirements-lock.txt`, `INSTALLATION_AND_REPRODUCTION.md`, `FINAL_VALIDATION_REPORT.md`, `HFSG_Phase1_Release_Closeout.md`, `SHA256SUMS.txt`, `HANDOVER_MANIFEST.json`, and the handover ZIP `HFSG_Phase1_Final_Handover_v1.0.zip`.
 
 **Awaiting Project Owner Final Acceptance decision.**
