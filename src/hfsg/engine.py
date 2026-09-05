@@ -200,6 +200,28 @@ class AggregateEngine:
                 "arrival rates"
             )
 
+        # Scenario-level arrival scaling (Step 8). Identity defaults keep the
+        # S1 baseline unchanged. ``arrivals_multiplier`` scales the baseline
+        # rate; ``arrivals_wave`` multiplies by ``factor`` for exactly
+        # [start_hour, start_hour + duration_hours) and then resumes baseline.
+        arrivals_overrides = arrivals.get("overrides", {})
+        self.arrivals_multiplier = float(
+            arrivals_overrides.get("arrivals_multiplier", 1.0)
+        )
+        wave = arrivals_overrides.get("arrivals_wave", {})
+        self.wave_enabled = bool(wave.get("enabled", False))
+        self.wave_factor = float(wave.get("factor", 1.0))
+        self.wave_start = int(wave.get("start_hour", 0))
+        self.wave_duration = int(wave.get("duration_hours", 0))
+        if self.arrivals_multiplier < 0 or self.wave_factor < 0:
+            raise AggregateEngineError(
+                "arrivals overrides must be non-negative"
+            )
+        if self.wave_enabled and self.wave_duration <= 0:
+            raise AggregateEngineError(
+                "arrivals_wave duration_hours must be positive when enabled"
+            )
+
     def _read_ed_parameters(self, config) -> None:
         ed_processing = config.ed_processing
         mean_hours = float(ed_processing["mean_processing_hours"])
@@ -285,13 +307,20 @@ class AggregateEngine:
     # ------------------------------------------------------------------
 
     def arrival_rate(self, hour: int) -> float:
-        if not self.seasonality_enabled:
-            return self.lambda_0
-        omega = 2.0 * np.pi / self.seasonality_period
-        return self.lambda_0 * (
-            1.0
-            + self.seasonality_amplitude * np.sin(omega * (hour - self.seasonality_phase))
-        )
+        base = self.lambda_0
+        if self.seasonality_enabled:
+            omega = 2.0 * np.pi / self.seasonality_period
+            base = base * (
+                1.0
+                + self.seasonality_amplitude
+                * np.sin(omega * (hour - self.seasonality_phase))
+            )
+        rate = base * self.arrivals_multiplier
+        if self.wave_enabled and self.wave_start <= hour < (
+            self.wave_start + self.wave_duration
+        ):
+            rate *= self.wave_factor
+        return float(rate)
 
     def icu_pressure_factor(self, icu_census: float) -> float:
         if not self.icu_pressure_enabled:

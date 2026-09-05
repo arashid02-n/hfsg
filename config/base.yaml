@@ -186,3 +186,53 @@ model:
     manifest_file: "dataset_manifest.json"
     validation_report_file: "validation_report.json"
     used_configuration_file: "used_configuration.yaml"
+    scenario_comparison_file: "scenario_comparison.csv"
+
+  scenarios:
+    pack: "Standard-8+CUSTOM"
+
+    definitions:
+      S1:
+        arrivals_multiplier: 1.0
+      S2:
+        arrivals_multiplier: 1.20
+      S3:
+        arrivals_multiplier: 1.50
+      S4:
+        icu_capacity_multiplier: 0.80
+      S5:
+        discharge_multiplier: 0.80
+      S6:
+        arrivals_multiplier: 1.20
+        icu_capacity_multiplier: 0.80
+      S7:
+        arrivals_wave:
+          enabled: true
+          factor: 2.0
+          start_hour: 0
+          duration_hours: 48
+      S8:
+        icu_capacity_multiplier: 1.20
+        discharge_multiplier: 1.20
+      CUSTOM:
+        # Filled from an approved CUSTOM profile at orchestration time.
+        # The default profile must represent an approved in-range run.
+        arrivals_multiplier: 1.25
+        icu_capacity_multiplier: 1.00
+        discharge_multiplier: 1.10
+
+    custom_parameter_limits:
+      arrivals_multiplier:
+        min: 0.5
+        max: 2.0
+      icu_capacity_multiplier:
+        min: 0.5
+        max: 1.5
+      discharge_multiplier:
+        min: 0.5
+        max: 2.0
+      arrivals_wave:
+        enabled: false
+        factor:
+          min: 1.0
+          max: 3.0

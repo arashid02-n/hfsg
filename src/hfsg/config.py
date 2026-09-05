@@ -41,6 +41,7 @@ SECTIONS = (
     "reproducibility",
     "validation",
     "output",
+    "scenarios",
 )
 
 REQUIRED_SECTIONS = (
@@ -83,6 +84,25 @@ NON_NEGATIVE_FIELDS: Dict[str, tuple[str, ...]] = {
 }
 
 CAPACITY_UNITS = ("ed", "specialty", "general", "icu")
+
+STANDARD_SCENARIOS = ("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8")
+
+# Configurable scenario override keys (Step 8). Flat keys on each scenario.
+# ``arrivals_wave`` is a temporal override: arrivals are multiplied by
+# ``factor`` for exactly the [start_hour, start_hour + duration_hours) window.
+SCENARIO_PARAMETER_KEYS = (
+    "arrivals_multiplier",
+    "arrivals_wave",
+    "icu_capacity_multiplier",
+    "discharge_multiplier",
+)
+
+# Numeric bounds for the CUSTOM scenario (approved ranges).
+CUSTOM_LIMIT_FIELDS = (
+    "arrivals_multiplier",
+    "icu_capacity_multiplier",
+    "discharge_multiplier",
+)
 
 
 class ConfigError(ValueError):
@@ -170,6 +190,21 @@ class ConfigurationLoader:
                 f"got {type(data).__name__}"
             )
 
+        return self.from_data(data, source=config_path)
+
+    def from_data(
+        self, data: Dict[str, Any], source: str | Path = "inline"
+    ) -> Configuration:
+        """Validate an already-parsed model dictionary into a Configuration.
+
+        Used to build effective (base + override) configurations per scenario
+        without re-reading YAML. ``data`` must be the ``model`` root mapping.
+        """
+        if not isinstance(data, dict):
+            raise ConfigError(
+                f"Configuration must be a mapping, got {type(data).__name__}"
+            )
+
         self._validate_sections(data)
         self._validate_required_fields(data)
         self._validate_types(data)
@@ -179,8 +214,9 @@ class ConfigurationLoader:
         self._validate_initial_population_vs_capacity(data)
         self._validate_patient_attributes(data)
         self._validate_batch(data)
+        self._validate_scenarios(data)
 
-        return Configuration(data, config_path)
+        return Configuration(data, Path(source))
 
     def _validate_sections(self, data: Dict[str, Any]) -> None:
         unknown = [s for s in data if s not in SECTIONS]
@@ -315,4 +351,148 @@ class ConfigurationLoader:
                 raise ConfigError(
                     f"batch.required_standard_scenarios missing Standard-8 "
                     f"scenario(s): {sorted(missing)}"
+                )
+
+    def _validate_scenarios(self, data: Dict[str, Any]) -> None:
+        scenarios = data.get("scenarios")
+        if scenarios is None:
+            raise ConfigError("Missing required section 'scenarios'")
+        if not isinstance(scenarios, dict):
+            raise ConfigError(f"scenarios must be a mapping, got {type(scenarios).__name__}")
+
+        pack = scenarios.get("pack")
+        if pack is None:
+            raise ConfigError("scenarios.pack must be configured")
+        if pack != "Standard-8+CUSTOM":
+            raise ConfigError(
+                f"scenarios.pack must be 'Standard-8+CUSTOM', got {pack!r}"
+            )
+
+        definitions = scenarios.get("definitions")
+        if not isinstance(definitions, dict):
+            raise ConfigError("scenarios.definitions must be a mapping")
+        missing_scenarios = [s for s in STANDARD_SCENARIOS if s not in definitions]
+        if missing_scenarios:
+            raise ConfigError(
+                f"scenarios.definitions missing Standard-8 scenario(s): "
+                f"{missing_scenarios}"
+            )
+        if "CUSTOM" not in definitions:
+            raise ConfigError("scenarios.definitions must include 'CUSTOM'")
+
+        # Validate every scenario definition against the known override keys.
+        for sid, definition in definitions.items():
+            self._validate_scenario_definition(sid, definition)
+
+        # Validate the CUSTOM parameter limits allowlist.
+        limits = scenarios.get("custom_parameter_limits")
+        if limits is None:
+            raise ConfigError("scenarios.custom_parameter_limits must be configured")
+        self._validate_custom_limits(limits)
+
+    def _validate_scenario_definition(self, sid: str, definition: Any) -> None:
+        if not isinstance(definition, dict):
+            raise ConfigError(f"scenarios.definitions.{sid} must be a mapping")
+        unknown = [k for k in definition if k not in SCENARIO_PARAMETER_KEYS]
+        if unknown:
+            raise ConfigError(
+                f"scenarios.definitions.{sid} has unknown key(s): {unknown}"
+            )
+        for key in SCENARIO_PARAMETER_KEYS:
+            value = definition.get(key)
+            if value is None:
+                continue
+            if key == "arrivals_wave":
+                self._validate_wave(sid, value)
+            else:
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    raise ConfigError(
+                        f"scenarios.definitions.{sid}.{key} must be numeric, "
+                        f"got {type(value).__name__}"
+                    )
+                if value < 0:
+                    raise ConfigError(
+                        f"scenarios.definitions.{sid}.{key} must be "
+                        f"non-negative, got {value}"
+                    )
+
+    def _validate_wave(self, sid: str, wave: Any) -> None:
+        if not isinstance(wave, dict):
+            raise ConfigError(f"scenarios.definitions.{sid}.arrivals_wave must be a mapping")
+        enabled = bool(wave.get("enabled", False))
+        if not enabled:
+            return
+        for field in ("factor", "start_hour", "duration_hours"):
+            if field not in wave:
+                raise ConfigError(
+                    f"scenarios.definitions.{sid}.arrivals_wave missing field "
+                    f"{field!r}"
+                )
+            if isinstance(wave[field], bool) or not isinstance(wave[field], (int, float)):
+                raise ConfigError(
+                    f"scenarios.definitions.{sid}.arrivals_wave.{field} must "
+                    f"be numeric"
+                )
+        if wave["factor"] < 0:
+            raise ConfigError(
+                f"scenarios.definitions.{sid}.arrivals_wave.factor must be "
+                f"non-negative"
+            )
+        if wave["start_hour"] < 0 or wave["duration_hours"] <= 0:
+            raise ConfigError(
+                f"scenarios.definitions.{sid}.arrivals_wave requires "
+                f"start_hour >= 0 and duration_hours > 0"
+            )
+
+    def _validate_custom_limits(self, limits: Any) -> None:
+        if not isinstance(limits, dict):
+            raise ConfigError("scenarios.custom_parameter_limits must be a mapping")
+        for field in CUSTOM_LIMIT_FIELDS:
+            spec = limits.get(field)
+            if not isinstance(spec, dict) or "min" not in spec or "max" not in spec:
+                raise ConfigError(
+                    f"scenarios.custom_parameter_limits.{field} must define "
+                    f"min/max bounds"
+                )
+            lo, hi = spec["min"], spec["max"]
+            if (
+                isinstance(lo, bool)
+                or isinstance(hi, bool)
+                or not isinstance(lo, (int, float))
+                or not isinstance(hi, (int, float))
+            ):
+                raise ConfigError(
+                    f"scenarios.custom_parameter_limits.{field} bounds must "
+                    f"be numeric"
+                )
+            if hi < lo:
+                raise ConfigError(
+                    f"scenarios.custom_parameter_limits.{field} max must be "
+                    f">= min"
+                )
+        wave = limits.get("arrivals_wave")
+        if not isinstance(wave, dict) or "enabled" not in wave:
+            raise ConfigError("scenarios.custom_parameter_limits.arrivals_wave must be configured")
+        if wave.get("enabled") is True:
+            factor = wave.get("factor")
+            if (
+                not isinstance(factor, dict)
+                or "min" not in factor
+                or "max" not in factor
+            ):
+                raise ConfigError(
+                    "scenarios.custom_parameter_limits.arrivals_wave.factor "
+                    "must define min/max when the wave is enabled"
+                )
+            lo, hi = factor["min"], factor["max"]
+            if (
+                isinstance(lo, bool)
+                or isinstance(hi, bool)
+                or not isinstance(lo, (int, float))
+                or not isinstance(hi, (int, float))
+                or hi < lo
+            ):
+                raise ConfigError(
+                    "scenarios.custom_parameter_limits.arrivals_wave.factor "
+                    "bounds invalid"
                 )

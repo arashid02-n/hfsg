@@ -45,6 +45,30 @@ from .simulation import (
     SimulationResult,
     StepOutcome,
 )
+from .scenarios import (
+    CUSTOM_SCENARIO_ID,
+    ScenarioManager,
+    ScenarioError,
+    configuration_hash,
+    hash_yaml,
+)
+from .output import (
+    write_partitioned,
+    read_partitioned,
+    dataset_manifest,
+    check_post_serialization,
+    replay_operational_stocks,
+    match_aggregate_to_replay,
+)
+from .pipeline import (
+    Pipeline,
+    ScenarioRunOutcome,
+    Step8Error,
+)
+from .validation_report import (
+    ValidationReportError,
+    validate_outputs,
+)
 
 __all__ = [
     "Configuration",
@@ -83,5 +107,21 @@ __all__ = [
     "SimulationDriver",
     "SimulationResult",
     "StepOutcome",
+    "CUSTOM_SCENARIO_ID",
+    "ScenarioManager",
+    "ScenarioError",
+    "configuration_hash",
+    "hash_yaml",
+    "write_partitioned",
+    "read_partitioned",
+    "dataset_manifest",
+    "check_post_serialization",
+    "replay_operational_stocks",
+    "match_aggregate_to_replay",
+    "Pipeline",
+    "ScenarioRunOutcome",
+    "Step8Error",
+    "ValidationReportError",
+    "validate_outputs",
 ]
-__version__ = "0.4.0"
+__version__ = "0.5.0"
