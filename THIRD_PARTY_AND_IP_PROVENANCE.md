@@ -3,7 +3,7 @@
 **Audit date:** 2026-09-05
 **Dataset audited:** `HFSG-DS-STD8-2026-20260905-120702` (final Phase 1 release)
 **Validated/Audited Core Commit:** `08032c3`
-**Final Handover Commit:** `7f5a117` (audited at the Final Handover Commit; the difference from the Core Commit is documentation/closeout only — Core/Model logic was NOT changed between `08032c3` and `7f5a117`)
+**Final Handover Commit:** `0764a3d` (audited at the Final Handover Commit; the difference from the Core Commit is documentation/closeout only — Core/Model logic was NOT changed between `08032c3` and `0764a3d`)
 **Requested by:** Project Owner (Mohammad Nazari)
 **Scope:** final owner-requested Third-Party / IP / Data Provenance audit for Final Acceptance preparation.
 **Result:** **PASS** — no real patient data, no PII, no proprietary third-party code, no undeclared third-party assets; all third-party software is permissive open source and fully declared.

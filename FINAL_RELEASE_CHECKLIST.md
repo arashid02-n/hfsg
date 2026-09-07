@@ -63,8 +63,8 @@ Mass balance: max_abs_mbe = 0.0; aggregate↔patient reconciliation: 0; event↔
 **Commercial Distribution / Commercial Use Authorization:** Subject to a separate Project Owner decision.
 
 - Validated/Audited Core Commit: `08032c3` (last commit affecting Core/Model logic — Step 9: 100k-patient batch generation and validation)
-- Final Handover Commit: `7f5a117` (final documentation/closeout/audit commit)
-- The difference between the Validated/Audited Core Commit and the Final Handover Commit is **documentation/closeout only**; Core/Model logic was NOT changed between `08032c3` and `7f5a117` (verified: `git diff 08032c3..7f5a117 -- src config scripts tests requirements.txt` is empty).
+- Final Handover Commit: `0764a3d` (final documentation/closeout commit — technical/commercial separation and unified commit references)
+- The difference between the Validated/Audited Core Commit and the Final Handover Commit is **documentation/closeout only**; Core/Model logic was NOT changed between `08032c3` and `0764a3d` (verified: `git diff 08032c3..0764a3d -- src config scripts tests requirements.txt` is empty).
 - Working tree: clean except intentionally untracked derived `data/`
 - No new features, variables, model logic, scenarios or capabilities added during closeout
 

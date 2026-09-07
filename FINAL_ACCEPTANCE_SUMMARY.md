@@ -47,7 +47,7 @@ These are recommendations only — NOT implemented, NOT a Phase 1 requirement:
 
 ## 5. Deliverable inventory
 
-Source — Validated/Audited Core Commit: `08032c3`; Final Handover Commit: `7f5a117` (the difference between them is **documentation/closeout only**; Core/Model logic was NOT changed between `08032c3` and `7f5a117` — `git diff 08032c3..7f5a117 -- src config scripts tests` is empty). Clean working tree except intentionally untracked `data/`.
+Source — Validated/Audited Core Commit: `08032c3`; Final Handover Commit: `0764a3d` (the difference between them is **documentation/closeout only**; Core/Model logic was NOT changed between `08032c3` and `0764a3d` — `git diff 08032c3..0764a3d -- src config scripts tests` is empty). Clean working tree except intentionally untracked `data/`.
 
 Released dataset `HFSG-DS-STD8-2026-20260905-120702`, `HFSG_PH1-DEV-001_Scale_Qualification_Deferral.md`, `THIRD_PARTY_AND_IP_PROVENANCE.md`, `FINAL_RELEASE_CHECKLIST.md`, `FINAL_DATA_DICTIONARY.md`, `requirements-lock.txt`, `INSTALLATION_AND_REPRODUCTION.md`, `FINAL_VALIDATION_REPORT.md`, `HFSG_Phase1_Release_Closeout.md`, `SHA256SUMS.txt`, `HANDOVER_MANIFEST.json`, and the handover ZIP `HFSG_Phase1_Final_Handover_v1.0.zip`.
 
