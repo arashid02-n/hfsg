@@ -17,10 +17,18 @@ Paths below assume a checkout named `hfsg` with an independent venv.
 The complete final source is in `01_SOURCE/`. On a new machine:
 
 ```bash
-git clone https://github.com/arashid02-n/hfsg.git   # final commit: a63d298
+git clone https://github.com/arashid02-n/hfsg.git   # final handover commit: 7f5a117
 cd hfsg
-git checkout a63d298
+git checkout 7f5a117
 ```
+
+Source-commit reference (verified from Git history):
+
+- **Validated/Audited Core Commit:** `08032c3` (last commit affecting Core/Model logic — Step 9: 100k-patient batch generation and validation)
+- **Final Handover Commit:** `7f5a117` (final documentation/closeout/audit commit)
+- The difference between the two is **documentation/closeout only**; Core/Model logic was
+  NOT changed between `08032c3` and `7f5a117` (verified: the diff of `src/`, `config/`,
+  `scripts/`, `tests/`, `requirements.txt` between the two commits is empty).
 
 or unpack the handover `01_SOURCE/` directory directly. The released dataset
 ships in `02_RELEASED_DATASET/` (see section "11. Reproduce a deterministic run" for
@@ -66,7 +74,7 @@ python -c "import sys; sys.path.insert(0,'src'); from hfsg.config import Configu
 python -m pytest tests/ -q
 ```
 
-Expected result at release: entirely PASS; on the final release commit `a63d298`
+Expected result at release: entirely PASS; on the final handover commit `7f5a117`
 the suite contains 177 passing tests.
 
 ## 6. Run one scenario
@@ -132,7 +140,7 @@ configuration and the run index (MODEL.md §27). To reproduce exactly what was
 released (dataset `HFSG-DS-STD8-2026-20260905-120702`, master seed 20260805):
 
 ```bash
-cd <hfsg checkout>                          # final commit a63d298
+cd <hfsg checkout>                          # final handover commit 7f5a117 (core: 08032c3)
 python -m pytest tests/ -q                  # 177 tests
 python scripts/run_step9.py --mode validate --out data/output/step9    # validates the released dataset
 ```

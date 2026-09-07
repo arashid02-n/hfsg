@@ -73,4 +73,8 @@ All scenarios: 0 reconciliation issues, 0 event/quota mismatches, max_abs_mbe = 
 
 **PHASE 1 — RELEASED / COMPLETE**
 
-Primary evidence: `validation_report.json` (VALIDATED, 0 critical failures) + Project Owner commercial release approval (Mohammad Nazari, 2026-09-05).
+Primary evidence: `validation_report.json` (VALIDATED, 0 critical failures).
+
+Technical Release / Phase-1 MVP: **RELEASED / ACCEPTED**.
+
+Commercial Distribution / Commercial Use Authorization: **Subject to a separate Project Owner decision** — Final Technical Acceptance of Phase 1 does NOT automatically constitute authorization to commercially distribute or commercially use the HFSG Source Code or Dataset.

@@ -28,8 +28,12 @@ The Project Owner has officially approved the following acceptance decision for 
 
 - Phase 1 validated/approved Acceptance Scale: **approximately 100,000 synthetic patients**.
 - Phase 2 future Scale Qualification target: **`>= 1,000,000` synthetic patients**.
-- Release state of the Phase 1 dataset `HFSG-DS-STD8-2026-20260905-120702`: **RELEASED** (validation conditions PASS;
-  commercial release approved by the Project Owner subject to final PASS conditions, which are confirmed).
+- Release state of the Phase 1 dataset `HFSG-DS-STD8-2026-20260905-120702`: **RELEASED /**
+  ACCEPTED** (technical, Phase-1 MVP; validation conditions PASS).
+- **Commercial Distribution / Commercial Use Authorization:** **Subject to a separate
+  Project Owner decision** — Final Technical Acceptance of Phase 1 does NOT automatically
+  constitute authorization to commercially distribute or commercially use the HFSG Source
+  Code or Dataset.
 
 ## 3. What this decision does NOT do
 

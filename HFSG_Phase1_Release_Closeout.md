@@ -14,8 +14,9 @@ Recorded per Project Owner instruction of 5 September 2026:
 - **Phase 1 MVP:** APPROVED / COMPLETE
 - **Validated production scale:** 100,000 synthetic patients
 - **Future scale qualification:** >= 1,000,000 synthetic patients — DEFERRED to a future Scale Qualification milestone when adequate hardware/storage/cloud infrastructure is available
-- **Commercial dataset:** `HFSG-DS-STD8-2026-20260905-120702`
-- **Commercial release:** RELEASED, subject to all final validation conditions being PASS
+- **Released dataset:** `HFSG-DS-STD8-2026-20260905-120702`
+- **Technical Release / Phase-1 MVP:** RELEASED / ACCEPTED
+- **Commercial Distribution / Commercial Use Authorization:** Subject to a separate Project Owner decision.
 
 The >= 1M deferral is NOT a failure of Phase 1. PRODUCT.md §12 success criterion 6 ("complete a 100,000-patient dry run") is satisfied and exceeded by the production batch. The deferral is formally recorded in `HFSG_PH1-DEV-001_Scale_Qualification_Deferral.md`.
 
@@ -94,7 +95,8 @@ The release package is `data/output/step9` and identifies:
 - Dataset manifest: `dataset_manifest.json`
 - Used configuration: `used_configuration.yaml`
 - Validation report: `validation_report.json`
-- Commercial release status: RELEASED
+- Technical Release / Phase-1 MVP status: RELEASED / ACCEPTED
+- Commercial Distribution / Commercial Use Authorization: Subject to a separate Project Owner decision.
 
 ---
 
